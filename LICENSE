@@ -1,0 +1,32 @@
+Solicitudes de Ayuda — Servidor
+Copyright (C) 2025-2026 Direct Sevilla Global Services SL
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU Affero General Public License as published
+by the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Affero General Public License for more details.
+
+You should have received a copy of the GNU Affero General Public License
+along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+SPDX-License-Identifier: AGPL-3.0-or-later
+
+-------------------------------------------------------------------------------
+
+Por qué esta licencia
+---------------------
+El software se publica como código abierto para que cualquier centro sanitario
+pueda usarlo, estudiarlo y mejorarlo sin coste de licencia. La AGPL v3 garantiza
+que cualquier modificación del código que se distribuya o se use para prestar un
+servicio en red también deba publicarse bajo las mismas condiciones, protegiendo
+así el trabajo de la comunidad.
+
+Direct Sevilla Global Services SL ofrece servicios profesionales de instalación,
+soporte y formación. Contacto: info@directsur.com
+
+Texto completo de la licencia: https://www.gnu.org/licenses/agpl-3.0.html

@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+{% block title %}Grupos{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <h4 class="mb-0">Grupos</h4>
+  <button class="btn btn-primary btn-sm" onclick="openModal()">
+    <i class="bi bi-plus-lg me-1"></i>Nuevo grupo
+  </button>
+</div>
+
+<div class="card">
+  <div class="card-body p-0">
+    <table class="table table-hover mb-0">
+      <thead class="table-light">
+        <tr><th>Nombre</th><th>Equipos</th><th></th></tr>
+      </thead>
+      <tbody>
+        {% for g in groups %}
+        <tr>
+          <td>{{ g.name }}</td>
+          <td>{{ g.client_count }}</td>
+          <td class="text-end">
+            <button class="btn btn-sm btn-outline-secondary me-1"
+                    onclick="openModal({{ g.id }}, '{{ g.name }}')">Editar</button>
+            <button class="btn btn-sm btn-outline-danger"
+                    onclick="deleteGroup({{ g.id }}, '{{ g.name }}')">Eliminar</button>
+          </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="3" class="text-center text-muted py-3">No hay grupos definidos</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<div class="modal fade" id="groupModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="modalTitle">Nuevo grupo</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="groupId">
+        <div class="mb-3">
+          <label class="form-label">Nombre</label>
+          <input type="text" id="groupName" class="form-control">
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+        <button type="button" class="btn btn-primary" onclick="saveGroup()">Guardar</button>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+const modal = new bootstrap.Modal(document.getElementById('groupModal'));
+function openModal(id, name) {
+  document.getElementById('groupId').value = id || '';
+  document.getElementById('groupName').value = name || '';
+  document.getElementById('modalTitle').textContent = id ? 'Editar grupo' : 'Nuevo grupo';
+  modal.show();
+}
+async function saveGroup() {
+  const id = document.getElementById('groupId').value;
+  const name = document.getElementById('groupName').value.trim();
+  if (!name) return;
+  const url = id ? `/api/groups/${id}` : '/api/groups';
+  const method = id ? 'PUT' : 'POST';
+  await fetch(url, {method, headers: {'Content-Type':'application/json'}, body: JSON.stringify({name})});
+  modal.hide();
+  location.reload();
+}
+async function deleteGroup(id, name) {
+  if (!confirm(`¿Eliminar el grupo "${name}"?\nLos equipos asignados quedarán sin grupo.`)) return;
+  await fetch(`/api/groups/${id}`, {method: 'DELETE'});
+  location.reload();
+}
+</script>
+{% endblock %}

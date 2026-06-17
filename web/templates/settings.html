@@ -1,0 +1,278 @@
+{% extends "base.html" %}
+{% block title %}Configuración{% endblock %}
+{% block content %}
+<h4 class="mb-4">Configuración</h4>
+
+<div class="row g-4">
+
+  <div class="col-12">
+    <div class="card border-warning">
+      <div class="card-header bg-warning text-dark fw-bold">
+        <i class="bi bi-keyboard me-2"></i>Combinación de teclas para solicitar ayuda
+      </div>
+      <div class="card-body">
+        <p class="text-muted mb-3">
+          Esta combinación es la misma para todos los equipos de la red.
+          Cámbiala solo si entra en conflicto con otro programa instalado en los equipos clientes.
+        </p>
+        <div class="d-flex align-items-center gap-3 flex-wrap">
+          <div>
+            <label class="form-label small">Combinación actual</label>
+            <div id="hotkeyDisplay" class="fs-4 fw-bold font-monospace border rounded px-3 py-2 bg-light"
+                 style="min-width:180px; text-align:center">
+              {{ hotkey }}
+            </div>
+            <input type="hidden" id="hotkeyInput" value="{{ hotkey }}">
+          </div>
+          <div class="mt-3">
+            <button id="recordBtn" class="btn btn-outline-warning"
+                    onclick="startRecording()">
+              <i class="bi bi-record-circle me-1"></i>Grabar nueva combinación
+            </button>
+            <div id="recordHint" class="small text-muted mt-1" style="display:none">
+              Pulsa la combinación de teclas deseada...
+            </div>
+          </div>
+          <div class="mt-3">
+            <button class="btn btn-primary" onclick="saveHotkey()">Guardar</button>
+            <span id="hotkeyMsg" class="ms-2 small"></span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-6">
+    <div class="card">
+      <div class="card-header">Responsable de Prevención de Riesgos</div>
+      <div class="card-body">
+        <div class="mb-3">
+          <label class="form-label">Nombre</label>
+          <input type="text" id="officerName" class="form-control" value="{{ officer.name if officer else '' }}">
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Email</label>
+          <input type="email" id="officerEmail" class="form-control" value="{{ officer.email if officer else '' }}">
+        </div>
+        <button class="btn btn-primary btn-sm" onclick="saveOfficer()">Guardar</button>
+        <span id="officerMsg" class="ms-2 small text-success"></span>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-6">
+    <div class="card">
+      <div class="card-header">Configuración SMTP</div>
+      <div class="card-body">
+        <div class="row g-2 mb-2">
+          <div class="col-8">
+            <label class="form-label small">Servidor</label>
+            <input type="text" id="smtpHost" class="form-control form-control-sm" value="{{ smtp.host if smtp else '' }}">
+          </div>
+          <div class="col-4">
+            <label class="form-label small">Puerto</label>
+            <input type="number" id="smtpPort" class="form-control form-control-sm" value="{{ smtp.port if smtp else 587 }}">
+          </div>
+        </div>
+        <div class="mb-2">
+          <label class="form-label small">Usuario</label>
+          <input type="text" id="smtpUser" class="form-control form-control-sm" value="{{ smtp.username if smtp else '' }}">
+        </div>
+        <div class="mb-2">
+          <label class="form-label small">Contraseña</label>
+          <input type="password" id="smtpPass" class="form-control form-control-sm" placeholder="(sin cambios si se deja vacío)">
+        </div>
+        <div class="mb-2">
+          <label class="form-label small">Dirección remitente</label>
+          <input type="email" id="smtpFrom" class="form-control form-control-sm" value="{{ smtp.from_addr if smtp else '' }}">
+        </div>
+        <div class="form-check mb-3">
+          <input type="checkbox" id="smtpTls" class="form-check-input" {% if not smtp or smtp.use_tls %}checked{% endif %}>
+          <label class="form-check-label small" for="smtpTls">Usar TLS</label>
+        </div>
+        <div class="d-flex gap-2">
+          <button class="btn btn-primary btn-sm" onclick="saveSMTP()">Guardar</button>
+          <button class="btn btn-outline-secondary btn-sm" onclick="testSMTP()">Probar conexión</button>
+        </div>
+        <span id="smtpMsg" class="d-block mt-2 small"></span>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-6">
+    <div class="card">
+      <div class="card-header">Envíos periódicos al responsable</div>
+      <div class="card-body">
+        <div class="mb-3">
+          <label class="form-label small">Frecuencia</label>
+          <div class="d-flex gap-3">
+            {% set freq = schedule.frequency if schedule else 'weekly' %}
+            <div class="form-check">
+              <input class="form-check-input" type="radio" name="freq" value="daily" id="fDaily" {% if freq=='daily' %}checked{% endif %} onchange="updateFreqUI()">
+              <label class="form-check-label" for="fDaily">Diario</label>
+            </div>
+            <div class="form-check">
+              <input class="form-check-input" type="radio" name="freq" value="weekly" id="fWeekly" {% if freq=='weekly' or not schedule %}checked{% endif %} onchange="updateFreqUI()">
+              <label class="form-check-label" for="fWeekly">Semanal</label>
+            </div>
+            <div class="form-check">
+              <input class="form-check-input" type="radio" name="freq" value="monthly" id="fMonthly" {% if freq=='monthly' %}checked{% endif %} onchange="updateFreqUI()">
+              <label class="form-check-label" for="fMonthly">Mensual</label>
+            </div>
+          </div>
+        </div>
+        <div id="dowRow" class="mb-2">
+          <label class="form-label small">Día de la semana</label>
+          <select id="dayOfWeek" class="form-select form-select-sm">
+            <option value="0" {% if schedule and schedule.day_of_week == 0 %}selected{% endif %}>Lunes</option>
+            <option value="1" {% if schedule and schedule.day_of_week == 1 %}selected{% endif %}>Martes</option>
+            <option value="2" {% if schedule and schedule.day_of_week == 2 %}selected{% endif %}>Miércoles</option>
+            <option value="3" {% if schedule and schedule.day_of_week == 3 %}selected{% endif %}>Jueves</option>
+            <option value="4" {% if schedule and schedule.day_of_week == 4 %}selected{% endif %}>Viernes</option>
+            <option value="5" {% if schedule and schedule.day_of_week == 5 %}selected{% endif %}>Sábado</option>
+            <option value="6" {% if schedule and schedule.day_of_week == 6 %}selected{% endif %}>Domingo</option>
+          </select>
+        </div>
+        <div id="domRow" class="mb-2" style="display:none">
+          <label class="form-label small">Día del mes</label>
+          <input type="number" id="dayOfMonth" class="form-control form-control-sm" min="1" max="28" value="{{ schedule.day_of_month if schedule else 1 }}">
+        </div>
+        <div class="mb-3">
+          <label class="form-label small">Hora de envío</label>
+          <input type="time" id="sendTime" class="form-control form-control-sm" value="{{ schedule.send_time if schedule else '08:00' }}">
+        </div>
+        <div class="form-check mb-3">
+          <input type="checkbox" id="schedActive" class="form-check-input" {% if not schedule or schedule.active %}checked{% endif %}>
+          <label class="form-check-label small" for="schedActive">Activo</label>
+        </div>
+        {% if schedule and schedule.last_sent %}
+        <p class="text-muted small">Último envío: {{ schedule.last_sent.strftime("%d/%m/%Y %H:%M") }}</p>
+        {% endif %}
+        <div class="d-flex gap-2">
+          <button class="btn btn-primary btn-sm" onclick="saveSchedule()">Guardar</button>
+          <button class="btn btn-outline-secondary btn-sm" onclick="sendNow()">Enviar ahora</button>
+        </div>
+        <span id="schedMsg" class="d-block mt-2 small"></span>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+// ─── Grabador de hotkey ───────────────────────────────────────────────────────
+let _recording = false;
+
+function startRecording() {
+  _recording = true;
+  document.getElementById('recordHint').style.display = '';
+  document.getElementById('hotkeyDisplay').textContent = '...';
+  document.getElementById('recordBtn').classList.add('btn-warning');
+  document.getElementById('recordBtn').classList.remove('btn-outline-warning');
+}
+
+document.addEventListener('keydown', (e) => {
+  if (!_recording) return;
+  e.preventDefault();
+  const parts = [];
+  if (e.ctrlKey)  parts.push('Ctrl');
+  if (e.altKey)   parts.push('Alt');
+  if (e.shiftKey) parts.push('Shift');
+  const key = e.key;
+  if (!['Control', 'Alt', 'Shift'].includes(key)) {
+    parts.push(key.length === 1 ? key.toUpperCase() : key);
+  }
+  if (parts.length >= 2) {
+    _recording = false;
+    const combo = parts.join('+');
+    document.getElementById('hotkeyInput').value = combo;
+    document.getElementById('hotkeyDisplay').textContent = combo;
+    document.getElementById('recordHint').style.display = 'none';
+    document.getElementById('recordBtn').classList.remove('btn-warning');
+    document.getElementById('recordBtn').classList.add('btn-outline-warning');
+  }
+});
+
+async function saveHotkey() {
+  const hotkey = document.getElementById('hotkeyInput').value;
+  const r = await fetch('/api/config', {
+    method: 'PUT', headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({hotkey})
+  });
+  const msg = document.getElementById('hotkeyMsg');
+  msg.textContent = r.ok ? 'Guardado ✓ — Los clientes actualizarán la combinación en su próximo reinicio.' : 'Error al guardar';
+  msg.className = r.ok ? 'ms-2 small text-success' : 'ms-2 small text-danger';
+}
+
+// ─── Resto de funciones ───────────────────────────────────────────────────────
+function updateFreqUI() {
+  const freq = document.querySelector('input[name="freq"]:checked').value;
+  document.getElementById('dowRow').style.display = freq === 'weekly' ? '' : 'none';
+  document.getElementById('domRow').style.display = freq === 'monthly' ? '' : 'none';
+}
+updateFreqUI();
+
+async function saveOfficer() {
+  const r = await fetch('/api/risk-officer', {
+    method: 'PUT', headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({name: document.getElementById('officerName').value, email: document.getElementById('officerEmail').value})
+  });
+  const msg = document.getElementById('officerMsg');
+  msg.textContent = r.ok ? 'Guardado ✓' : 'Error al guardar';
+  msg.className = r.ok ? 'ms-2 small text-success' : 'ms-2 small text-danger';
+}
+
+async function saveSMTP() {
+  const r = await fetch('/api/smtp-config', {
+    method: 'PUT', headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({
+      host: document.getElementById('smtpHost').value,
+      port: parseInt(document.getElementById('smtpPort').value),
+      username: document.getElementById('smtpUser').value,
+      password: document.getElementById('smtpPass').value,
+      use_tls: document.getElementById('smtpTls').checked,
+      from_addr: document.getElementById('smtpFrom').value,
+    })
+  });
+  const msg = document.getElementById('smtpMsg');
+  msg.textContent = r.ok ? 'Guardado ✓' : 'Error al guardar';
+  msg.className = r.ok ? 'small text-success' : 'small text-danger';
+}
+
+async function testSMTP() {
+  const msg = document.getElementById('smtpMsg');
+  msg.textContent = 'Enviando...';
+  msg.className = 'small text-muted';
+  const r = await fetch('/api/smtp-config/test', {method: 'POST'});
+  const data = await r.json();
+  msg.textContent = r.ok ? 'Correo de prueba enviado ✓' : ('Error: ' + data.error);
+  msg.className = r.ok ? 'small text-success' : 'small text-danger';
+}
+
+async function saveSchedule() {
+  const freq = document.querySelector('input[name="freq"]:checked').value;
+  const r = await fetch('/api/email-schedule', {
+    method: 'PUT', headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({
+      frequency: freq,
+      day_of_week: freq === 'weekly' ? parseInt(document.getElementById('dayOfWeek').value) : null,
+      day_of_month: freq === 'monthly' ? parseInt(document.getElementById('dayOfMonth').value) : null,
+      send_time: document.getElementById('sendTime').value,
+      active: document.getElementById('schedActive').checked,
+    })
+  });
+  const msg = document.getElementById('schedMsg');
+  msg.textContent = r.ok ? 'Guardado ✓' : 'Error al guardar';
+  msg.className = r.ok ? 'small text-success' : 'small text-danger';
+}
+
+async function sendNow() {
+  const msg = document.getElementById('schedMsg');
+  msg.textContent = 'Enviando...';
+  const r = await fetch('/api/email-schedule/send-now', {method: 'POST'});
+  const data = await r.json();
+  msg.textContent = r.ok ? 'Informe enviado ✓' : ('Error: ' + data.error);
+  msg.className = r.ok ? 'small text-success' : 'small text-danger';
+}
+</script>
+{% endblock %}

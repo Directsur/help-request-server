@@ -1,0 +1,242 @@
+{% extends "base.html" %}
+{% block title %}Ayuda — Solicitudes de Ayuda{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <h2 class="mb-0"><i class="bi bi-question-circle me-2 text-primary"></i>Ayuda del sistema</h2>
+</div>
+
+<p class="text-muted mb-4">
+  Sistema de alerta inmediata diseñado originalmente para personal sanitario y administrativo
+  de centros de salud y hospitales, aunque igualmente aplicable a cualquier organización o
+  sector donde sea necesario comunicar una emergencia de forma rápida entre equipos de la
+  misma red local: centros educativos, residencias, instalaciones industriales,
+  servicios de seguridad, etc.
+</p>
+
+{# Índice de navegación rápida #}
+<div class="card border-0 shadow-sm mb-4">
+  <div class="card-body py-3">
+    <div class="d-flex flex-wrap gap-2">
+      <a href="#acceso"       class="btn btn-sm btn-outline-secondary">Acceso</a>
+      <a href="#dashboard"    class="btn btn-sm btn-outline-secondary">Dashboard</a>
+      <a href="#ubicaciones"  class="btn btn-sm btn-outline-secondary">Ubicaciones</a>
+      <a href="#equipos"      class="btn btn-sm btn-outline-secondary">Equipos</a>
+      <a href="#grupos"       class="btn btn-sm btn-outline-secondary">Grupos</a>
+      <a href="#solicitudes"  class="btn btn-sm btn-outline-secondary">Solicitudes</a>
+      <a href="#informes"     class="btn btn-sm btn-outline-secondary">Informes</a>
+      <a href="#configuracion" class="btn btn-sm btn-outline-secondary">Configuración</a>
+    </div>
+  </div>
+</div>
+
+{# ── Acceso ── #}
+<div class="card border-0 shadow-sm mb-3" id="acceso">
+  <div class="card-header bg-white border-bottom fw-semibold">
+    <i class="bi bi-key me-2 text-warning"></i>Acceso al sistema
+  </div>
+  <div class="card-body">
+    <p>Para acceder al interfaz de administración, abra un navegador en cualquier equipo de
+    la red y vaya a <code>http://&lt;IP-del-servidor&gt;:8080</code>.</p>
+    <p>Inicie sesión con el usuario <strong>admin</strong> y la contraseña establecida
+    durante la instalación. Si olvidó la contraseña, el administrador del servidor puede
+    restablecerla con:</p>
+    <pre class="bg-light rounded p-2 mb-0"><code>sudo reset-admin-password</code></pre>
+  </div>
+</div>
+
+{# ── Dashboard ── #}
+<div class="card border-0 shadow-sm mb-3" id="dashboard">
+  <div class="card-header bg-white border-bottom fw-semibold">
+    <i class="bi bi-speedometer2 me-2 text-info"></i>Panel de control
+  </div>
+  <div class="card-body">
+    <p>La pantalla de inicio muestra un resumen en tiempo real:</p>
+    <ul>
+      <li><strong>Equipos en línea</strong>: equipos que han enviado señal de vida en los
+          últimos 5 minutos.</li>
+      <li><strong>Equipos de seguridad en línea</strong>: subconjunto marcados como
+          seguridad/guardia.</li>
+      <li><strong>Solicitudes hoy / este mes</strong>: alertas reales registradas
+          (los simulacros no se cuentan).</li>
+      <li><strong>Últimas solicitudes</strong>: tabla con las 10 alertas más recientes.</li>
+    </ul>
+  </div>
+</div>
+
+{# ── Ubicaciones ── #}
+<div class="card border-0 shadow-sm mb-3" id="ubicaciones">
+  <div class="card-header bg-white border-bottom fw-semibold">
+    <i class="bi bi-building me-2 text-success"></i>Ubicaciones
+  </div>
+  <div class="card-body">
+    <p>Las ubicaciones se organizan en una jerarquía de cuatro niveles:</p>
+    <div class="alert alert-light border mb-3">
+      <code>Centro → Edificio → Planta → Sala</code>
+    </div>
+    <p>Debe crear primero el nivel superior antes de crear el siguiente. El orden de creación
+    recomendado es: <em>Centro → Edificio → Planta → Sala</em>.</p>
+    <ul>
+      <li>El <strong>nombre del centro</strong> y de todos los niveles se incluye en el
+          mensaje de alerta que reciben los equipos.</li>
+      <li>La <strong>dirección</strong> del centro y del edificio es solo informativa:
+          no se envía en las alertas.</li>
+      <li>No se puede eliminar un elemento que tenga subelementos o equipos asociados.</li>
+    </ul>
+    <div class="alert alert-info border-0 mt-3 mb-0">
+      <i class="bi bi-laptop me-2"></i>
+      <strong>También desde el cliente:</strong> los equipos pueden crear nuevos centros,
+      edificios, plantas y salas directamente desde su ventana de configuración de ubicación
+      (botón <strong>[+]</strong> junto a cada campo). Las <em>ediciones</em> y
+      <em>eliminaciones</em> solo están disponibles desde este interfaz web.
+    </div>
+  </div>
+</div>
+
+{# ── Equipos ── #}
+<div class="card border-0 shadow-sm mb-3" id="equipos">
+  <div class="card-header bg-white border-bottom fw-semibold">
+    <i class="bi bi-pc-display me-2 text-primary"></i>Equipos
+  </div>
+  <div class="card-body">
+    <p>Los equipos se registran automáticamente la primera vez que el cliente arranca y
+    contacta con el servidor. Aparecen en la lista con su nombre de red, ubicación y
+    estado de conexión.</p>
+    <h6 class="fw-semibold mt-3">Asignar ubicación y grupo</h6>
+    <ol>
+      <li>Pulse el botón de edición <i class="bi bi-pencil"></i> junto al equipo.</li>
+      <li>Seleccione la sala en el desplegable de ubicaciones.</li>
+      <li>Seleccione el grupo (opcional).</li>
+      <li>Active <strong>Equipo de seguridad</strong> si este equipo debe recibir
+          <em>todas</em> las alertas, independientemente del grupo.</li>
+      <li>Pulse <strong>Guardar</strong>.</li>
+    </ol>
+    <div class="alert alert-warning border-0 mt-3 mb-0">
+      <i class="bi bi-shield-check me-2"></i>
+      <strong>Equipos de seguridad:</strong> reciben todas las alertas de todos los grupos,
+      sin excepción. Úselo para puestos de guardia o seguridad del centro.
+    </div>
+  </div>
+</div>
+
+{# ── Grupos ── #}
+<div class="card border-0 shadow-sm mb-3" id="grupos">
+  <div class="card-header bg-white border-bottom fw-semibold">
+    <i class="bi bi-diagram-3 me-2 text-secondary"></i>Grupos
+  </div>
+  <div class="card-body">
+    <p>Los grupos determinan qué equipos reciben las alertas. Un equipo solo recibe la
+    alerta de otro si ambos pertenecen al mismo grupo, o si el receptor está marcado como
+    equipo de seguridad.</p>
+    <h6 class="fw-semibold mt-3">Casos de uso habituales</h6>
+    <ul>
+      <li><strong>Grupo por planta</strong>: las alertas de esa planta llegan solo a los
+          equipos de la misma planta (más los de seguridad).</li>
+      <li><strong>Grupo por especialidad</strong>: urgencias, consultas, etc.</li>
+      <li><strong>Sin grupos</strong>: si ningún equipo tiene grupo, las alertas llegan a
+          todos los equipos del centro.</li>
+    </ul>
+    <p>Para crear un grupo: pulse <strong>Nuevo grupo</strong>, introduzca el nombre y
+    pulse <strong>Guardar</strong>. Asigne los equipos al grupo desde la vista Equipos.</p>
+  </div>
+</div>
+
+{# ── Solicitudes ── #}
+<div class="card border-0 shadow-sm mb-3" id="solicitudes">
+  <div class="card-header bg-white border-bottom fw-semibold">
+    <i class="bi bi-exclamation-triangle me-2 text-danger"></i>Historial de solicitudes
+  </div>
+  <div class="card-body">
+    <p>La sección <strong>Solicitudes</strong> muestra el historial completo de alertas
+    reales registradas. Puede filtrar por rango de fechas.</p>
+    <h6 class="fw-semibold mt-3">Simulacros</h6>
+    <p>Los simulacros (activados con <kbd>Ctrl</kbd>+<kbd>Mayúsculas</kbd>+<kbd>F12</kbd>)
+    se muestran en una sección separada con fondo naranja al final de la página.
+    Solo se conservan los últimos 5. Los simulacros <strong>no aparecen en los informes
+    ni en los correos</strong> al responsable.</p>
+  </div>
+</div>
+
+{# ── Informes ── #}
+<div class="card border-0 shadow-sm mb-3" id="informes">
+  <div class="card-header bg-white border-bottom fw-semibold">
+    <i class="bi bi-bar-chart me-2 text-success"></i>Informes
+  </div>
+  <div class="card-body">
+    <p>Desde <strong>Informes</strong> puede generar resúmenes filtrados por rango de
+    fechas, centro, edificio o usuario. El informe muestra el número de alertas por equipo
+    y por ubicación para identificar los puntos de mayor incidencia.</p>
+    <p>Los informes siempre excluyen los simulacros.</p>
+    <h6 class="fw-semibold mt-3">Envío periódico por correo</h6>
+    <p>Configure el envío automático al responsable de prevención en
+    <strong>Configuración → Programación de correos</strong>. Puede elegir frecuencia
+    diaria, semanal o mensual.</p>
+  </div>
+</div>
+
+{# ── Configuración ── #}
+<div class="card border-0 shadow-sm mb-4" id="configuracion">
+  <div class="card-header bg-white border-bottom fw-semibold">
+    <i class="bi bi-gear me-2"></i>Configuración
+  </div>
+  <div class="card-body">
+
+    <h6 class="fw-semibold">Responsable de prevención de riesgos</h6>
+    <p>Registre el nombre y correo electrónico del responsable. Recibirá los informes
+    periódicos programados.</p>
+
+    <h6 class="fw-semibold mt-3">Servidor de correo (SMTP)</h6>
+    <p>Configure el servidor de correo saliente para que funcionen los informes por
+    correo electrónico. Campos requeridos: servidor, puerto, usuario, contraseña y
+    dirección de envío. Pulse <strong>Enviar correo de prueba</strong> para verificar.</p>
+
+    <h6 class="fw-semibold mt-3">Atajo de teclado global</h6>
+    <p>El atajo que activa las alertas en todos los clientes se configura aquí:</p>
+    <ol>
+      <li>Pulse el campo de atajo.</li>
+      <li>Pulse la combinación de teclas deseada (p.&nbsp;ej., <kbd>Ctrl</kbd>+<kbd>F10</kbd>).</li>
+      <li>Pulse <strong>Guardar</strong>.</li>
+    </ol>
+    <p>El nuevo atajo se distribuye automáticamente a los clientes cuando arrancan o
+    se reconectan. El <strong>atajo de simulacro</strong>
+    (<kbd>Ctrl</kbd>+<kbd>Mayúsculas</kbd>+<kbd>F12</kbd>) es fijo y no se puede cambiar.</p>
+    <div class="alert alert-info border-0 mb-0">
+      <i class="bi bi-lightbulb me-2"></i>
+      Evite atajos que colisionen con los del sistema operativo o de las aplicaciones
+      médicas en uso. Se recomiendan combinaciones con <kbd>Ctrl</kbd> y teclas de función
+      (<kbd>F9</kbd>–<kbd>F12</kbd>).
+    </div>
+  </div>
+</div>
+
+{# ── Licencia, soporte y contacto ── #}
+<div class="card border-0 shadow-sm mb-4" style="border-left: 4px solid #0d6efd !important;">
+  <div class="card-body">
+    <h5 class="fw-bold mb-1">
+      <i class="bi bi-building me-2 text-primary"></i>Direct Sevilla Global Services SL
+    </h5>
+    <p class="text-muted mb-3">20 años de experiencia en desarrollos para el sector sanitario</p>
+
+    <h6 class="fw-semibold mb-1"><i class="bi bi-file-earmark-text me-2"></i>Licencia</h6>
+    <p class="mb-1">
+      Solicitudes de Ayuda se publica bajo la
+      <strong>GNU Affero General Public License, versión 3</strong> (AGPL-3.0-or-later).
+      Puede usar, copiar, modificar y redistribuir el software libremente siempre que conserve
+      esta misma licencia y haga públicas las modificaciones que distribuya o ponga en
+      producción. Esta licencia no limita en ningún caso la prestación de servicios
+      profesionales sobre el software.
+    </p>
+    <a href="https://www.gnu.org/licenses/agpl-3.0.html" target="_blank" rel="noopener"
+       class="btn btn-outline-secondary btn-sm mb-3">
+      <i class="bi bi-box-arrow-up-right me-1"></i>Texto completo de la licencia
+    </a>
+
+    <h6 class="fw-semibold mb-1"><i class="bi bi-envelope me-2"></i>Soporte y contacto</h6>
+    <p class="mb-1">Para soporte técnico, servicios de instalación o cualquier consulta:</p>
+    <a href="mailto:info@directsur.com" class="btn btn-outline-primary btn-sm">
+      <i class="bi bi-envelope me-2"></i>info@directsur.com
+    </a>
+  </div>
+</div>
+
+{% endblock %}

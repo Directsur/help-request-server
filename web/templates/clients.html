@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+{% block title %}Equipos{% endblock %}
+{% block content %}
+<h4 class="mb-4">Equipos registrados</h4>
+<div class="card">
+  <div class="card-body p-0">
+    <table class="table table-hover mb-0" id="clients-table">
+      <thead class="table-light">
+        <tr>
+          <th>Equipo</th><th>Ubicación</th><th>Grupo</th><th>Seguridad</th><th>Estado</th><th>Última conexión</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for c in clients %}
+        <tr>
+          <td><code>{{ c.id }}</code><br><small class="text-muted">{{ c.name }}</small></td>
+          <td>{{ c.location or "—" }}</td>
+          <td>
+            <select class="form-select form-select-sm" style="min-width:140px"
+                    onchange="assignGroup('{{ c.id }}', this.value)">
+              <option value="">— Sin grupo —</option>
+              {% for g in groups %}
+              <option value="{{ g.id }}" {% if c.group_id == g.id %}selected{% endif %}>{{ g.name }}</option>
+              {% endfor %}
+            </select>
+          </td>
+          <td class="text-center">
+            <div class="form-check form-switch d-flex justify-content-center">
+              <input class="form-check-input" type="checkbox" role="switch"
+                     {% if c.is_security %}checked{% endif %}
+                     onchange="setSecurity('{{ c.id }}', this.checked)">
+            </div>
+          </td>
+          <td>
+            {% if c.online %}
+            <span class="badge bg-success">● En línea</span>
+            {% else %}
+            <span class="badge bg-secondary">○ Desconectado</span>
+            {% endif %}
+          </td>
+          <td><small>{{ c.last_seen }}</small></td>
+        </tr>
+        {% else %}
+        <tr><td colspan="6" class="text-center text-muted py-3">No hay equipos registrados</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+async function assignGroup(clientId, groupId) {
+  await fetch(`/api/clients/${clientId}/group`, {
+    method: 'PUT',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({group_id: groupId ? parseInt(groupId) : null})
+  });
+}
+async function setSecurity(clientId, value) {
+  await fetch(`/api/clients/${clientId}/security`, {
+    method: 'PUT',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({is_security: value})
+  });
+}
+setInterval(() => location.reload(), 30000);
+</script>
+{% endblock %}

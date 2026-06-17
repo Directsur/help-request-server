@@ -1,0 +1,162 @@
+{% extends "base.html" %}
+{% block title %}Ubicaciones{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <h4 class="mb-0">Ubicaciones</h4>
+  <button class="btn btn-primary btn-sm" onclick="openModal('center')">
+    <i class="bi bi-plus-lg me-1"></i>Nuevo centro
+  </button>
+</div>
+
+<div class="card">
+  <div class="card-body">
+    {% for center in tree %}
+    <div class="tree-node mb-3">
+      <div class="d-flex align-items-center gap-2">
+        <button class="btn btn-sm btn-link p-0 toggle" onclick="toggle(this)">▼</button>
+        <i class="bi bi-hospital text-primary"></i>
+        <strong>{{ center.name }}</strong>
+        {% if center.address %}<small class="text-muted">— {{ center.address }}</small>{% endif %}
+        <div class="ms-auto">
+          <button class="btn btn-sm btn-outline-secondary" onclick="openModal('building', {{ center.id }})">+ Edificio</button>
+          <button class="btn btn-sm btn-outline-secondary" onclick="openModal('center', null, {{ center.id }}, '{{ center.name|e }}', '{{ center.address|e }}')">Editar</button>
+          <button class="btn btn-sm btn-outline-danger" onclick="del('centers', {{ center.id }})">✕</button>
+        </div>
+      </div>
+      <div class="tree-children ms-4 mt-1">
+        {% for building in center.buildings %}
+        <div class="tree-node mb-2">
+          <div class="d-flex align-items-center gap-2">
+            <button class="btn btn-sm btn-link p-0 toggle" onclick="toggle(this)">▼</button>
+            <i class="bi bi-building text-secondary"></i>
+            {{ building.name }}
+            {% if building.address %}<small class="text-muted">— {{ building.address }}</small>{% endif %}
+            <div class="ms-auto">
+              <button class="btn btn-sm btn-outline-secondary btn-xs" onclick="openModal('floor', {{ building.id }})">+ Planta</button>
+              <button class="btn btn-sm btn-outline-secondary btn-xs" onclick="openModal('building', {{ center.id }}, {{ building.id }}, '{{ building.name|e }}', '{{ building.address|e }}')">Editar</button>
+              <button class="btn btn-sm btn-outline-danger btn-xs" onclick="del('buildings', {{ building.id }})">✕</button>
+            </div>
+          </div>
+          <div class="tree-children ms-4 mt-1">
+            {% for floor in building.floors %}
+            <div class="tree-node mb-1">
+              <div class="d-flex align-items-center gap-2">
+                <button class="btn btn-sm btn-link p-0 toggle" onclick="toggle(this)">▼</button>
+                <i class="bi bi-layers text-info"></i>
+                {{ floor.name }}
+                <div class="ms-auto">
+                  <button class="btn btn-sm btn-outline-secondary btn-xs" onclick="openModal('room', {{ floor.id }})">+ Sala</button>
+                  <button class="btn btn-sm btn-outline-secondary btn-xs" onclick="openModal('floor', {{ building.id }}, {{ floor.id }}, '{{ floor.name|e }}')">Editar</button>
+                  <button class="btn btn-sm btn-outline-danger btn-xs" onclick="del('floors', {{ floor.id }})">✕</button>
+                </div>
+              </div>
+              <div class="tree-children ms-4 mt-1">
+                {% for room in floor.rooms %}
+                <div class="d-flex align-items-center gap-2 py-1">
+                  <i class="bi bi-door-open text-success"></i>
+                  {{ room.name }}
+                  <div class="ms-auto">
+                    <button class="btn btn-sm btn-outline-secondary btn-xs" onclick="openModal('room', {{ floor.id }}, {{ room.id }}, '{{ room.name|e }}')">Editar</button>
+                    <button class="btn btn-sm btn-outline-danger btn-xs" onclick="del('rooms', {{ room.id }})">✕</button>
+                  </div>
+                </div>
+                {% endfor %}
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+    {% else %}
+    <p class="text-muted">No hay centros definidos. Añade uno con el botón superior.</p>
+    {% endfor %}
+  </div>
+</div>
+
+<!-- Modal -->
+<div class="modal fade" id="locModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="locModalTitle">Añadir</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="locType">
+        <input type="hidden" id="locParentId">
+        <input type="hidden" id="locId">
+        <div class="mb-3">
+          <label class="form-label" id="locNameLabel">Nombre</label>
+          <input type="text" id="locName" class="form-control">
+        </div>
+        <div class="mb-3" id="locAddressRow" style="display:none">
+          <label class="form-label">Dirección</label>
+          <textarea id="locAddress" class="form-control" rows="2"></textarea>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+        <button class="btn btn-primary" onclick="saveLoc()">Guardar</button>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+const locModal = new bootstrap.Modal(document.getElementById('locModal'));
+const labels = {center:'Centro', building:'Edificio', floor:'Planta', room:'Sala'};
+const endpoints = {center:'centers', building:'buildings', floor:'floors', room:'rooms'};
+
+function toggle(btn) {
+  const children = btn.closest('.tree-node').querySelector('.tree-children');
+  if (children) {
+    const hidden = children.style.display === 'none';
+    children.style.display = hidden ? '' : 'none';
+    btn.textContent = hidden ? '▼' : '▶';
+  }
+}
+
+function openModal(type, parentId, id, name, address) {
+  document.getElementById('locType').value = type;
+  document.getElementById('locParentId').value = parentId || '';
+  document.getElementById('locId').value = id || '';
+  document.getElementById('locName').value = name || '';
+  document.getElementById('locAddress').value = address || '';
+  document.getElementById('locModalTitle').textContent = (id ? 'Editar ' : 'Añadir ') + labels[type];
+  document.getElementById('locAddressRow').style.display = (type === 'center' || type === 'building') ? '' : 'none';
+  locModal.show();
+}
+
+async function saveLoc() {
+  const type = document.getElementById('locType').value;
+  const parentId = document.getElementById('locParentId').value;
+  const id = document.getElementById('locId').value;
+  const name = document.getElementById('locName').value.trim();
+  const address = document.getElementById('locAddress').value.trim();
+  if (!name) return;
+
+  const endpoint = endpoints[type];
+  const parentKey = {center: null, building: 'center_id', floor: 'building_id', room: 'floor_id'}[type];
+  const body = {name};
+  if (address) body.address = address;
+  if (parentKey && parentId) body[parentKey] = parseInt(parentId);
+
+  const url = id ? `/api/${endpoint}/${id}` : `/api/${endpoint}`;
+  const method = id ? 'PUT' : 'POST';
+  await fetch(url, {method, headers: {'Content-Type':'application/json'}, body: JSON.stringify(body)});
+  locModal.hide();
+  location.reload();
+}
+
+async function del(endpoint, id) {
+  if (!confirm('¿Eliminar este elemento y todo su contenido?')) return;
+  const r = await fetch(`/api/${endpoint}/${id}`, {method: 'DELETE'});
+  const data = await r.json();
+  if (data.error) { alert(data.error); return; }
+  location.reload();
+}
+</script>
+{% endblock %}

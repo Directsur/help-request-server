@@ -1,0 +1,102 @@
+{% extends "base.html" %}
+{% block title %}Solicitudes{% endblock %}
+{% block content %}
+<h4 class="mb-4">Solicitudes de ayuda</h4>
+
+<div class="card mb-3">
+  <div class="card-body">
+    <form method="get" action="/alerts" class="row g-2 align-items-end">
+      <div class="col-md-2">
+        <label class="form-label small">Desde</label>
+        <input type="date" name="from_date" class="form-control form-control-sm" value="{{ filters.from_date }}">
+      </div>
+      <div class="col-md-2">
+        <label class="form-label small">Hasta</label>
+        <input type="date" name="to_date" class="form-control form-control-sm" value="{{ filters.to_date }}">
+      </div>
+      <div class="col-md-2">
+        <label class="form-label small">Usuario</label>
+        <input type="text" name="username" class="form-control form-control-sm" value="{{ filters.username }}">
+      </div>
+      <div class="col-md-2">
+        <label class="form-label small">Equipo</label>
+        <input type="text" name="client_id" class="form-control form-control-sm" value="{{ filters.client_id }}">
+      </div>
+      <div class="col-md-2">
+        <label class="form-label small">Centro</label>
+        <input type="text" name="center" class="form-control form-control-sm" value="{{ filters.center }}">
+      </div>
+      <div class="col-md-2">
+        <label class="form-label small">Edificio</label>
+        <input type="text" name="building" class="form-control form-control-sm" value="{{ filters.building }}">
+      </div>
+      <div class="col-md-2">
+        <label class="form-label small">Planta</label>
+        <input type="text" name="floor" class="form-control form-control-sm" value="{{ filters.floor }}">
+      </div>
+      <div class="col-md-2">
+        <label class="form-label small">Sala</label>
+        <input type="text" name="room" class="form-control form-control-sm" value="{{ filters.room }}">
+      </div>
+      <div class="col-md-4 d-flex gap-2">
+        <button type="submit" class="btn btn-primary btn-sm">Buscar</button>
+        <a href="/alerts" class="btn btn-outline-secondary btn-sm">Limpiar</a>
+        <a href="/api/alerts/export?from_date={{ filters.from_date }}&to_date={{ filters.to_date }}&username={{ filters.username }}&client_id={{ filters.client_id }}&center={{ filters.center }}&building={{ filters.building }}&floor={{ filters.floor }}&room={{ filters.room }}"
+           class="btn btn-outline-success btn-sm ms-auto">
+          <i class="bi bi-download me-1"></i>CSV
+        </a>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-body p-0">
+    <table class="table table-sm table-hover mb-0">
+      <thead class="table-light">
+        <tr><th>Fecha/hora</th><th>Usuario</th><th>Equipo</th><th>Centro</th><th>Edificio</th><th>Planta</th><th>Sala</th></tr>
+      </thead>
+      <tbody>
+        {% for a in alerts %}
+        <tr>
+          <td>{{ a.triggered_at.strftime("%d/%m/%Y %H:%M") }}</td>
+          <td>{{ a.username or "—" }}</td>
+          <td><code>{{ a.client_id or "—" }}</code></td>
+          <td>{{ a.center or "—" }}</td>
+          <td>{{ a.building or "—" }}</td>
+          <td>{{ a.floor or "—" }}</td>
+          <td>{{ a.room or "—" }}</td>
+        </tr>
+        {% else %}
+        <tr><td colspan="7" class="text-center text-muted py-3">Sin resultados</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+{% if drills %}
+<div class="card mt-4 border-warning">
+  <div class="card-header bg-warning text-dark fw-bold">
+    Últimos simulacros (máx. 5 — no aparecen en informes ni correos)
+  </div>
+  <div class="card-body p-0">
+    <table class="table table-sm table-hover mb-0">
+      <thead class="table-warning">
+        <tr><th>Fecha/hora</th><th>Usuario</th><th>Equipo</th><th>Ubicación</th></tr>
+      </thead>
+      <tbody>
+        {% for a in drills %}
+        <tr>
+          <td>{{ a.triggered_at.strftime("%d/%m/%Y %H:%M") }}</td>
+          <td>{{ a.username or "—" }}</td>
+          <td><code>{{ a.client_id or "—" }}</code></td>
+          <td>{{ [a.center, a.building, a.floor, a.room] | select("string") | join(" > ") }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endif %}
+{% endblock %}
