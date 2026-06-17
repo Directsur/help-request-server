@@ -12,8 +12,8 @@ sin servidor (modo local), pero sin él no hay histórico ni informes.
 
 | Componente | Versión mínima              | Notas                                 |
 |------------|------------------------------|---------------------------------------|
-| SO         | Debian 12 / Ubuntu 22.04 LTS | También Ubuntu 24.04, Debian 11       |
-| Python     | 3.11                         | python3.11 del repositorio oficial    |
+| SO         | Debian 11 / Ubuntu 22.04 LTS | También Debian 12, 13, Ubuntu 24.04   |
+| Python     | 3.11                         | Debian 12: 3.11 · Debian 13: 3.13    |
 | MySQL      | 8.0                          | O MariaDB 10.6+                       |
 | RAM        | 512 MB                       | 1 GB recomendado                      |
 | Disco      | 2 GB libres                  | Para logs y base de datos             |

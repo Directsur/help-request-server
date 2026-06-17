@@ -56,9 +56,9 @@ Los clientes envían las alertas por **UDP broadcast** (y unicast a peers conoci
 
 | Componente | Versión mínima              | Notas                            |
 |------------|-----------------------------|----------------------------------|
-| SO         | Debian 12 / Ubuntu 22.04    | También Ubuntu 24.04, Debian 11  |
-| Python     | 3.11                        | Incluido en Debian 12            |
-| MySQL      | 8.0                         | O MariaDB 10.6+                  |
+| SO         | Debian 11 / Ubuntu 22.04    | También Debian 12, 13, Ubuntu 24.04 |
+| Python     | 3.11                        | Debian 12: 3.11 · Debian 13: 3.13  |
+| MySQL      | 8.0                         | O MariaDB 10.6+                     |
 | RAM        | 512 MB                      | 1 GB recomendado                 |
 
 ---
