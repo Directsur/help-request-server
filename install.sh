@@ -204,7 +204,45 @@ fi
     ADMIN_PASSWORD="${ADMIN_PASSWORD:-}" /usr/local/bin/reset-admin-password "$ADMIN_USER"
 )
 
-# ─── 14. Arrancar servicio ────────────────────────────────────────────────────
+# ─── 14. Actualización automática diaria ──────────────────────────────────────
+info "Configurando actualización automática (3:00 AM)..."
+
+install -m 755 "$INSTALL_DIR/scripts/auto-update.sh" /usr/local/bin/help-request-auto-update
+
+cat > /etc/systemd/system/help-request-server-update.service <<EOF
+[Unit]
+Description=Actualización automática de Solicitudes de Ayuda
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/help-request-auto-update
+StandardOutput=journal
+StandardError=journal
+EOF
+
+cat > /etc/systemd/system/help-request-server-update.timer <<EOF
+[Unit]
+Description=Comprobación diaria de actualizaciones — Solicitudes de Ayuda
+
+[Timer]
+OnCalendar=*-*-* 03:00:00
+RandomizedDelaySec=1800
+Persistent=true
+
+[Install]
+WantedBy=timers.target
+EOF
+
+systemctl daemon-reload
+systemctl enable --now help-request-server-update.timer
+
+# Guardar versión instalada para que el script de actualización la compare
+INSTALLED_COMMIT=$(git -C "$SCRIPT_DIR" rev-parse HEAD 2>/dev/null || echo "unknown")
+echo "$INSTALLED_COMMIT" > "$INSTALL_DIR/.installed_commit"
+
+# ─── 15. Arrancar servicio ────────────────────────────────────────────────────
 info "Arrancando servicio..."
 systemctl restart "$SERVICE_NAME"
 sleep 2
@@ -231,4 +269,6 @@ echo "  Comandos útiles:"
 echo "    systemctl status $SERVICE_NAME"
 echo "    journalctl -u $SERVICE_NAME -f"
 echo "    reset-admin-password [usuario]"
+echo "    journalctl -u help-request-server-update  # logs de actualizaciones"
+echo "    systemctl list-timers help-request-server-update.timer"
 echo ""

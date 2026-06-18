@@ -122,6 +122,21 @@ sudo systemctl restart help-request-server
 
 ---
 
+## Actualización automática
+
+El servidor comprueba cada noche a las **3:00** si hay commits nuevos en `main`. Si los hay, descarga, actualiza dependencias, migra la base de datos y reinicia el servicio sin intervención manual.
+
+```bash
+# Forzar actualización inmediata
+sudo help-request-auto-update
+
+# Ver log de actualizaciones
+tail -f /var/log/help-request-server/auto-update.log
+
+# Ver próxima ejecución programada
+systemctl list-timers help-request-server-update.timer
+```
+
 ## Comandos de administración
 
 ```bash

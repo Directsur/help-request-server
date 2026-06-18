@@ -156,19 +156,54 @@ El comando le pedirá la nueva contraseña y la actualiza en la base de datos.
 
 ---
 
-## Actualización
+## Actualización automática
+
+El servidor comprueba automáticamente cada noche a las **3:00** si hay cambios en el
+repositorio de GitHub. Si los hay, descarga la nueva versión, actualiza dependencias,
+aplica cambios de esquema en la base de datos y reinicia el servicio — sin intervención
+manual.
+
+Para ver cuándo se ejecutará la próxima comprobación:
+
+```bash
+systemctl list-timers help-request-server-update.timer
+```
+
+Para ver el log de actualizaciones anteriores:
+
+```bash
+journalctl -u help-request-server-update
+# O directamente en el fichero de log:
+tail -f /var/log/help-request-server/auto-update.log
+```
+
+Para forzar una actualización inmediata sin esperar a las 3:00:
+
+```bash
+sudo help-request-auto-update
+```
+
+## Actualización manual
+
+Si prefiere actualizar manualmente sin esperar al timer:
+
+```bash
+sudo help-request-auto-update
+```
+
+O paso a paso:
 
 1. Detenga el servicio:
    ```bash
    sudo systemctl stop help-request-server
    ```
-2. Sustituya los archivos de la aplicación en `/opt/help-request-server/`:
+2. Sustituya los archivos en `/opt/help-request-server/`:
    ```bash
-   sudo rsync -a --exclude=venv ./ /opt/help-request-server/
+   sudo rsync -a --exclude=venv --exclude='.git' ./ /opt/help-request-server/
    ```
 3. Actualice las dependencias Python:
    ```bash
-   sudo -u helprequest /opt/help-request-server/venv/bin/pip install -r /opt/help-request-server/requirements.txt
+   sudo /opt/help-request-server/venv/bin/pip install -r /opt/help-request-server/requirements.txt
    ```
 4. Reinicie el servicio:
    ```bash
