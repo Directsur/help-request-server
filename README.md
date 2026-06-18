@@ -78,7 +78,7 @@ sudo mysql -e "
 sudo bash install.sh
 ```
 
-El script solicita de forma interactiva la contraseña de MySQL, la contraseña del administrador web y una clave secreta para las sesiones (se genera automáticamente si se deja en blanco).
+El script solicita de forma interactiva: proxy de red (opcional), contraseña de base de datos, puerto de escucha, nombre y contraseña del administrador web. La clave secreta de sesión se genera automáticamente.
 
 Al finalizar, el servicio queda activo en el puerto **8080**:
 
@@ -90,7 +90,7 @@ Para más detalles, consulta [`docs/manual-instalacion-servidor.md`](docs/manual
 
 ### Despliegue rápido con ISO preconfigurada
 
-Descarga la ISO desde la [página de releases](https://github.com/Directsur/help-request-server/releases). La instalación es completamente desatendida: Debian 13 + servidor configurado y en marcha en 10-15 minutos, sin intervención manual.
+Descarga la ISO desde la [página de releases](https://github.com/Directsur/help-request-server/releases). La única pregunta que aparece durante el arranque es el proxy HTTP (vacío si no se necesita). El resto es completamente automático: Debian 13 + servidor configurado y en marcha en 10-15 minutos.
 
 - **Equipo físico** — graba la ISO en un USB con Rufus (Windows) o `dd` (Linux/macOS) y arranca desde él. El disco del equipo se formatea automáticamente.
 - **Máquina virtual** — arranca la ISO directamente en VMware (ESXi, Workstation), VirtualBox o Proxmox.

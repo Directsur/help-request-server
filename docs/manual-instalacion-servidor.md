@@ -73,9 +73,14 @@ sudo bash install.sh
 
 El script le pedirá de forma interactiva:
 
-- **Contraseña de MySQL** para el usuario `helprequest`
-- **Contraseña del administrador web** (usuario: `admin`)
-- **Clave secreta** para las sesiones (pulse Enter para generar una aleatoria)
+1. **Proxy de red** — URL del proxy si la red no tiene salida directa a internet
+   (p. ej. `http://proxy.empresa.com:3128`). Déjelo vacío si no es necesario.
+2. **Contraseña de base de datos** para el usuario `helprequest`
+3. **Puerto de la interfaz web** (por defecto `8080`)
+4. **Nombre del usuario administrador web** (por defecto `admin`)
+5. **Contraseña del administrador web**
+
+La clave secreta de sesión se genera automáticamente.
 
 Al finalizar, el script:
 - Crea el usuario de sistema `helprequest`

@@ -68,7 +68,7 @@ sudo sync
 1. Conecte el USB al equipo y arránquelo.
 2. Entre en la BIOS/UEFI (normalmente F2, F12, Supr o Esc al encender) y configure
    el USB como primer dispositivo de arranque. O use el menú de arranque puntual (Boot Menu).
-3. El instalador arranca y procede de forma completamente desatendida.
+3. El instalador arranca. La única pregunta que aparece es el proxy HTTP (déjelo vacío si no es necesario). El resto es completamente desatendido.
 4. **Atención:** el disco duro del equipo se particionará y formateará automáticamente.
    Asegúrese de que no hay datos que conservar en ese equipo.
 5. Al terminar, el equipo se reinicia y el servidor queda en funcionamiento.
@@ -95,9 +95,11 @@ sudo sync
    - **Red:** adaptador en la red local del centro (VLAN correspondiente)
    - **CD/DVD:** conectar la ISO subida al datastore
 
-4. Arranque la VM. La instalación es completamente automática:
+4. Arranque la VM. La única pregunta que aparece es la del proxy:
    ```
    Arranca el instalador de Debian
+        ↓
+   Pregunta: ¿proxy HTTP? (vacío = sin proxy)
         ↓
    Particiona el disco automáticamente
         ↓
@@ -117,7 +119,7 @@ sudo sync
 2. Seleccione la ISO cuando pida el medio de instalación.
 3. Guest OS: **Linux → Debian 11 o posterior (64-bit)**
 4. Asigne los recursos (mínimo 1 GB RAM, 20 GB disco).
-5. Arranque. La instalación transcurre sin intervención.
+5. Arranque. La única pregunta que aparece es el proxy HTTP; responda y el resto es automático.
 
 ---
 
@@ -136,7 +138,7 @@ sudo sync
 4. **Settings → Network:**
    - Adapter 1: **Bridged Adapter** (para que la VM esté en la misma red que los clientes)
 
-5. Arranque la VM. Instalación automática sin preguntas.
+5. Arranque la VM. Solo aparece la pregunta del proxy HTTP; el resto es completamente automático.
 
 ---
 
@@ -157,7 +159,7 @@ sudo sync
 
 3. En **Hardware → CD/DVD Drive**, añada la ISO.
 
-4. Arranque. Instalación completamente desatendida.
+4. Arranque. Solo aparece la pregunta del proxy HTTP; el resto es completamente desatendido.
 
 5. Una vez terminada, puede crear una **plantilla** de la VM para despliegues futuros:
    - Apague la VM
