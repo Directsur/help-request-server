@@ -83,26 +83,34 @@ fi
 # ── 6. Reempaquetar ISO ───────────────────────────────────────────────────────
 info "Reempaquetando ISO → $OUTPUT_ISO ..."
 
-# Extraer parámetros de boot de la ISO original con xorriso
-BOOT_INFO=$(xorriso -indev "$ISO_NAME" -report_el_torito as_mkisofs 2>/dev/null || true)
+# Extraer el MBR híbrido de la ISO original (primeros 432 bytes)
+dd if="$ISO_NAME" bs=1 count=432 of="$WORK_DIR/mbr.bin" 2>/dev/null
 
-# Construir el comando de reempaquetado
-xorriso -as mkisofs \
-    -r -J -joliet-long \
-    -l -cache-inodes \
-    -V "Solicitudes de Ayuda Srv" \
-    -b isolinux/isolinux.bin \
-    -c isolinux/boot.cat \
-    -no-emul-boot \
-    -boot-load-size 4 \
-    -boot-info-table \
-    -eltorito-alt-boot \
-    -e boot/grub/efi.img \
-    -no-emul-boot \
-    -isohybrid-gpt-basdat \
-    -isohybrid-mbr "$WORK_DIR/iso/isolinux/isohdpfx.bin" \
-    -o "$OUTPUT_ISO" \
-    "$WORK_DIR/iso" 2>/dev/null
+# Localizar la imagen EFI dentro del contenido extraído
+EFI_IMG=""
+for candidate in "boot/grub/efi.img" "EFI/boot/efi.img" "efi.img"; do
+    [[ -f "$WORK_DIR/iso/$candidate" ]] && EFI_IMG="$candidate" && break
+done
+
+# Construir comando xorriso
+XORRISO_CMD=(
+    xorriso -as mkisofs
+    -r -J -joliet-long -l -cache-inodes
+    -V "Solicitudes de Ayuda Srv"
+    -b isolinux/isolinux.bin
+    -c isolinux/boot.cat
+    -no-emul-boot -boot-load-size 4 -boot-info-table
+    -isohybrid-mbr "$WORK_DIR/mbr.bin"
+)
+if [[ -n "$EFI_IMG" ]]; then
+    info "Imagen EFI encontrada: $EFI_IMG"
+    XORRISO_CMD+=(-eltorito-alt-boot -e "$EFI_IMG" -no-emul-boot -isohybrid-gpt-basdat)
+else
+    warn "No se encontró imagen EFI — la ISO solo arrancará en modo BIOS."
+fi
+XORRISO_CMD+=(-o "$OUTPUT_ISO" "$WORK_DIR/iso")
+
+"${XORRISO_CMD[@]}" || error "xorriso falló al reempaquetar la ISO."
 
 echo ""
 echo "╔══════════════════════════════════════════════════════╗"
