@@ -35,8 +35,8 @@ echo "╚═══════════════════════�
 echo ""
 
 # ── Dependencias ───────────────────────────────────────────────────────────────
-for cmd in xorriso wget; do
-    command -v "$cmd" &>/dev/null || error "Falta '$cmd'. Instálalo con: sudo apt-get install -y xorriso wget"
+for cmd in xorriso wget cpio gzip; do
+    command -v "$cmd" &>/dev/null || error "Falta '$cmd'. Instálalo con: sudo apt-get install -y xorriso wget cpio gzip"
 done
 [[ -f "$PRESEED_FILE" ]] || error "No se encuentra preseed.cfg en $PRESEED_FILE"
 
@@ -55,31 +55,61 @@ mkdir -p "$WORK_DIR/iso"
 xorriso -osirrox on -indev "$ISO_NAME" -extract / "$WORK_DIR/iso" 2>/dev/null
 chmod -R u+w "$WORK_DIR/iso"
 
-# ── 3. Copiar y configurar preseed ────────────────────────────────────────────
-info "Copiando preseed.cfg..."
+# ── 3. Incrustar preseed en el initrd ─────────────────────────────────────────
+# El preseed en el initrd se carga automáticamente sin parámetros de arranque.
+# Se copia también a la raíz de la ISO como respaldo (file=/cdrom/preseed.cfg).
+info "Incorporando preseed.cfg en el initrd..."
+INITRD_PATH=""
+for candidate in "install.amd/initrd.gz" "install/initrd.gz"; do
+    [[ -f "$WORK_DIR/iso/$candidate" ]] && INITRD_PATH="$candidate" && break
+done
+
+if [[ -n "$INITRD_PATH" ]]; then
+    INITRD_FULL="$WORK_DIR/iso/$INITRD_PATH"
+    INITRD_TMP="$WORK_DIR/initrd-work"
+    mkdir -p "$INITRD_TMP"
+    # cpio suele devolver código de error aunque funcione — se ignora con || true
+    (cd "$INITRD_TMP" && zcat "$INITRD_FULL" | cpio -i --no-absolute-filenames 2>/dev/null) || true
+    if [[ $(ls "$INITRD_TMP" 2>/dev/null | wc -l) -gt 0 ]]; then
+        cp "$PRESEED_FILE" "$INITRD_TMP/preseed.cfg"
+        (cd "$INITRD_TMP" && find . | cpio -o -H newc 2>/dev/null | gzip -9 > "$INITRD_FULL") || \
+            warn "Aviso: reempaquetado del initrd falló — se usará file=/cdrom/preseed.cfg como respaldo."
+        info "Preseed incrustado en $INITRD_PATH"
+    else
+        warn "No se pudo extraer el initrd — se usará file=/cdrom/preseed.cfg como respaldo."
+    fi
+    rm -rf "$INITRD_TMP"
+else
+    warn "No se encontró el initrd."
+fi
+# Copia también el preseed a la raíz de la ISO como método de respaldo
 cp "$PRESEED_FILE" "$WORK_DIR/iso/preseed.cfg"
 
 # ── 4. Modificar arranque BIOS (isolinux) ─────────────────────────────────────
-# priority=medium: con todo lo demás preseeded, solo aparecerá la pregunta del proxy
+# priority=medium: con todo lo demás preseeded, solo aparecerá la pregunta del proxy.
+# file= actúa como respaldo por si el preseed del initrd no se aplica.
 PARAMS="auto=true priority=medium file=/cdrom/preseed.cfg"
 
 TXT_CFG="$WORK_DIR/iso/isolinux/txt.cfg"
+ISOLINUX_CFG="$WORK_DIR/iso/isolinux/isolinux.cfg"
 if [[ -f "$TXT_CFG" ]]; then
-    info "Modificando isolinux/txt.cfg (BIOS)..."
-    # Añade parámetros al final de cada línea 'append' del instalador
+    info "Modificando isolinux (BIOS)..."
+    # Añade parámetros al final de la línea 'append' del instalador
     sed -i "s|^\(\s*append\s\+.*\)|\1 $PARAMS|" "$TXT_CFG"
-    # Reduce timeout para que arranque automáticamente (en décimas de segundo)
-    sed -i 's/^timeout .*/timeout 10/' "$WORK_DIR/iso/isolinux/isolinux.cfg" 2>/dev/null || true
+    # Selecciona la entrada 'install' como defecto y establece timeout de 5 s (50 décimas)
+    sed -i 's/^default .*/default install/' "$ISOLINUX_CFG" 2>/dev/null || true
+    sed -i 's/^timeout .*/timeout 50/'     "$ISOLINUX_CFG" 2>/dev/null || true
 fi
 
 # ── 5. Modificar arranque UEFI (grub) ────────────────────────────────────────
 GRUB_CFG="$WORK_DIR/iso/boot/grub/grub.cfg"
 if [[ -f "$GRUB_CFG" ]]; then
-    info "Modificando boot/grub/grub.cfg (UEFI)..."
-    # Añade parámetros a las líneas 'linux' que cargan el kernel del instalador
+    info "Modificando grub.cfg (UEFI)..."
+    # Añade parámetros a las líneas 'linux' del instalador
     sed -i "s|^\(\s*linux\s\+.*/vmlinuz.*\)|\1 $PARAMS|" "$GRUB_CFG"
-    # Reduce timeout a 1 segundo
-    sed -i 's/^set timeout=.*/set timeout=1/' "$GRUB_CFG"
+    # Inserta timeout=5 s y default=1 antes del primer menuentry.
+    # Índice 0='Graphical install' (gtk/initrd.gz), índice 1='Install' (initrd.gz con preseed)
+    sed -i '0,/^menuentry /s/^menuentry /set default=1\nset timeout=5\n\nmenuentry /' "$GRUB_CFG"
 fi
 
 # ── 6. Reempaquetar ISO ───────────────────────────────────────────────────────
