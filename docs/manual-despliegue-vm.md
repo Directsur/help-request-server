@@ -250,6 +250,34 @@ ip a
 
 ---
 
+## Instalación en redes con proxy
+
+Si la infraestructura requiere un proxy para acceder a internet, el propio instalador
+lo preguntará durante el proceso. No es necesario configurar nada antes de arrancar la ISO.
+
+Durante el arranque de la ISO, el instalador de Debian mostrará la siguiente pregunta:
+
+```
+Información del proxy HTTP
+Por favor, introduzca la información del proxy HTTP:
+[                                        ]
+```
+
+- Si la red tiene salida directa a internet: **déjelo vacío** y pulse Enter.
+- Si se necesita proxy: introduzca la URL completa, por ejemplo:
+  `http://proxy.empresa.com:3128`
+
+El proxy queda configurado automáticamente en el sistema instalado para apt, git y pip,
+por lo que las actualizaciones futuras también lo usarán.
+
+> Si el proxy requiere autenticación, use el formato:
+> `http://usuario:contraseña@proxy.empresa.com:3128`
+
+Para **instalaciones manuales** con `install.sh`, el script también preguntará por el
+proxy al inicio de la instalación.
+
+---
+
 ## Generar la ISO localmente (para personalizar)
 
 Si desea regenerar la ISO con cambios (contraseñas distintas, hostname diferente, etc.):
@@ -264,6 +292,9 @@ bash preseed/build_iso.sh
 
 Consulte `preseed/preseed.cfg` para modificar parámetros como el hostname, la zona horaria
 o la contraseña de root antes de generar la ISO.
+
+El proxy no necesita configurarse en tiempo de construcción: el instalador lo preguntará
+durante el arranque de la ISO.
 
 ---
 

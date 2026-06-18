@@ -64,6 +64,24 @@ else
     API_PORT="${API_PORT:-8080}"
 fi
 
+# ─── Proxy de red ─────────────────────────────────────────────────────────────
+if [[ "$NONINTERACTIVE" == "1" ]]; then
+    PROXY_URL="${PROXY_URL:-}"
+else
+    ask "Proxy de red (dejar vacío si hay salida directa a internet):"
+    ask "Ejemplo: http://proxy.empresa.com:3128"
+    read -r PROXY_URL
+fi
+
+if [[ -n "$PROXY_URL" ]]; then
+    info "Configurando proxy: $PROXY_URL"
+    export http_proxy="$PROXY_URL"
+    export https_proxy="$PROXY_URL"
+    echo "Acquire::http::Proxy \"$PROXY_URL\";" > /etc/apt/apt.conf.d/01proxy
+    grep -q "http_proxy" /etc/environment 2>/dev/null || \
+        printf 'http_proxy=%s\nhttps_proxy=%s\n' "$PROXY_URL" "$PROXY_URL" >> /etc/environment
+fi
+
 # ─── 1. Dependencias del sistema ───────────────────────────────────────────────
 info "Actualizando repositorios e instalando dependencias..."
 apt-get update -qq

@@ -25,6 +25,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PRESEED_FILE="$SCRIPT_DIR/preseed.cfg"
 WORK_DIR="$(mktemp -d /tmp/build-iso-XXXXXX)"
 
+
 trap 'info "Limpiando directorio temporal..."; rm -rf "$WORK_DIR"' EXIT
 
 echo ""
@@ -54,12 +55,13 @@ mkdir -p "$WORK_DIR/iso"
 xorriso -osirrox on -indev "$ISO_NAME" -extract / "$WORK_DIR/iso" 2>/dev/null
 chmod -R u+w "$WORK_DIR/iso"
 
-# ── 3. Copiar preseed ─────────────────────────────────────────────────────────
+# ── 3. Copiar y configurar preseed ────────────────────────────────────────────
 info "Copiando preseed.cfg..."
 cp "$PRESEED_FILE" "$WORK_DIR/iso/preseed.cfg"
 
 # ── 4. Modificar arranque BIOS (isolinux) ─────────────────────────────────────
-PARAMS="auto=true priority=critical file=/cdrom/preseed.cfg"
+# priority=medium: con todo lo demás preseeded, solo aparecerá la pregunta del proxy
+PARAMS="auto=true priority=medium file=/cdrom/preseed.cfg"
 
 TXT_CFG="$WORK_DIR/iso/isolinux/txt.cfg"
 if [[ -f "$TXT_CFG" ]]; then
