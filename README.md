@@ -88,6 +88,15 @@ http://<IP-del-servidor>:8080
 
 Para más detalles, consulta [`docs/manual-instalacion-servidor.md`](docs/manual-instalacion-servidor.md).
 
+### Despliegue rápido con ISO preconfigurada
+
+Descarga la ISO desde la [página de releases](https://github.com/Directsur/help-request-server/releases). La instalación es completamente desatendida: Debian 13 + servidor configurado y en marcha en 10-15 minutos, sin intervención manual.
+
+- **Equipo físico** — graba la ISO en un USB con Rufus (Windows) o `dd` (Linux/macOS) y arranca desde él. El disco del equipo se formatea automáticamente.
+- **Máquina virtual** — arranca la ISO directamente en VMware (ESXi, Workstation), VirtualBox o Proxmox.
+
+Consulta [`docs/manual-despliegue-vm.md`](docs/manual-despliegue-vm.md) para instrucciones detalladas.
+
 ---
 
 ## Configuración
