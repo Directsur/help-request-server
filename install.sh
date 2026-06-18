@@ -23,6 +23,9 @@ VENV_DIR="$INSTALL_DIR/venv"
 DB_NAME="help_request"
 DB_USER="helprequest"
 
+# Modo no-interactivo: NONINTERACTIVE=1 DB_PASSWORD=... API_PORT=... ADMIN_USER=... ADMIN_PASSWORD=...
+NONINTERACTIVE="${NONINTERACTIVE:-0}"
+
 echo ""
 echo "╔══════════════════════════════════════════════════════╗"
 echo "║     Instalación — Sistema de Solicitudes de Ayuda    ║"
@@ -32,21 +35,34 @@ echo ""
 # ─── Contraseña de base de datos ──────────────────────────────────────────────
 if [[ -f "$CONFIG_DIR/env" ]]; then
     warn "Detectada instalación previa en $CONFIG_DIR/env"
-    ask "¿Reinstalar? Se mantendrá la base de datos existente. [s/N]"
-    read -r REINSTALL
-    [[ "$REINSTALL" != "s" && "$REINSTALL" != "S" ]] && { info "Instalación cancelada."; exit 0; }
+    if [[ "$NONINTERACTIVE" == "1" ]]; then
+        warn "Modo no-interactivo: reinstalando sobre instalación existente."
+    else
+        ask "¿Reinstalar? Se mantendrá la base de datos existente. [s/N]"
+        read -r REINSTALL
+        [[ "$REINSTALL" != "s" && "$REINSTALL" != "S" ]] && { info "Instalación cancelada."; exit 0; }
+    fi
     DB_PASSWORD=$(grep DB_PASSWORD "$CONFIG_DIR/env" | cut -d= -f2)
 else
-    ask "Contraseña para el usuario de base de datos '$DB_USER':"
-    read -rs DB_PASSWORD
-    echo ""
-    [[ -z "$DB_PASSWORD" ]] && error "La contraseña no puede estar vacía"
+    if [[ "$NONINTERACTIVE" == "1" ]]; then
+        DB_PASSWORD="${DB_PASSWORD:-$(python3 -c "import secrets; print(secrets.token_hex(16))")}"
+        info "Contraseña de base de datos generada automáticamente."
+    else
+        ask "Contraseña para el usuario de base de datos '$DB_USER':"
+        read -rs DB_PASSWORD
+        echo ""
+        [[ -z "$DB_PASSWORD" ]] && error "La contraseña no puede estar vacía"
+    fi
 fi
 
 # ─── Puerto de la API ──────────────────────────────────────────────────────────
-ask "Puerto de la interfaz web [8080]:"
-read -r API_PORT
-API_PORT="${API_PORT:-8080}"
+if [[ "$NONINTERACTIVE" == "1" ]]; then
+    API_PORT="${API_PORT:-8080}"
+else
+    ask "Puerto de la interfaz web [8080]:"
+    read -r API_PORT
+    API_PORT="${API_PORT:-8080}"
+fi
 
 # ─── 1. Dependencias del sistema ───────────────────────────────────────────────
 info "Actualizando repositorios e instalando dependencias..."
@@ -156,13 +172,18 @@ info "Inicializando tablas en la base de datos..."
 # ─── 13. Crear usuario administrador ──────────────────────────────────────────
 echo ""
 info "Creando usuario administrador para la interfaz web..."
-ask "Nombre de usuario administrador [admin]:"
-read -r ADMIN_USER
-ADMIN_USER="${ADMIN_USER:-admin}"
+if [[ "$NONINTERACTIVE" == "1" ]]; then
+    ADMIN_USER="${ADMIN_USER:-admin}"
+    ADMIN_PASSWORD="${ADMIN_PASSWORD:-admin}"
+else
+    ask "Nombre de usuario administrador [admin]:"
+    read -r ADMIN_USER
+    ADMIN_USER="${ADMIN_USER:-admin}"
+fi
 
 (
     set -a; source "$CONFIG_DIR/env"; set +a
-    /usr/local/bin/reset-admin-password "$ADMIN_USER"
+    ADMIN_PASSWORD="${ADMIN_PASSWORD:-}" /usr/local/bin/reset-admin-password "$ADMIN_USER"
 )
 
 # ─── 14. Arrancar servicio ────────────────────────────────────────────────────
