@@ -201,6 +201,25 @@ es fijo y no se puede cambiar.**
 
 ---
 
+## Actualizaciones del sistema
+
+El servidor se actualiza automáticamente cada noche a las **3:00**. Comprueba si hay
+nuevas versiones publicadas y, si las hay, las instala sin intervención manual.
+
+El administrador del servidor puede consultar el resultado de la última actualización con:
+
+```bash
+tail -f /var/log/help-request-server/auto-update.log
+```
+
+O forzar una actualización inmediata:
+
+```bash
+sudo help-request-auto-update
+```
+
+---
+
 ## Ayuda y soporte
 
 Para consultas técnicas o incidencias, contacte con el administrador del sistema o con

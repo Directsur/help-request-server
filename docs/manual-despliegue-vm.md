@@ -219,6 +219,35 @@ Reinicie la red: `systemctl restart networking`
 
 ---
 
+## Actualización automática
+
+El servidor comprueba cada noche a las **3:00** si hay nuevas versiones publicadas en
+GitHub. Si las hay, se actualiza solo, sin intervención manual.
+
+Para ver el estado del timer y cuándo se ejecutará la próxima comprobación:
+
+```bash
+systemctl list-timers help-request-server-update.timer
+```
+
+Para ver el log de actualizaciones:
+
+```bash
+tail -f /var/log/help-request-server/auto-update.log
+```
+
+Para forzar una actualización inmediata sin esperar a las 3:00:
+
+```bash
+sudo help-request-auto-update
+```
+
+> El servidor debe tener acceso a internet (directo o vía proxy) para poder descargar
+> las actualizaciones. Si la red usa proxy, quedó configurado automáticamente durante
+> la instalación.
+
+---
+
 ## Puertos necesarios en el cortafuegos
 
 | Puerto | Protocolo | Uso |
