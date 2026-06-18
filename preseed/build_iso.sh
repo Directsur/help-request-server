@@ -16,7 +16,7 @@ warn()  { echo -e "${YELLOW}[!]${NC} $*"; }
 error() { echo -e "${RED}[✗]${NC} $*"; exit 1; }
 
 # ── Configuración ──────────────────────────────────────────────────────────────
-DEBIAN_VERSION="13.0"
+DEBIAN_VERSION="13.5.0"
 ARCH="amd64"
 ISO_NAME="debian-${DEBIAN_VERSION}-${ARCH}-netinst.iso"
 ISO_URL="https://cdimage.debian.org/debian-cd/current/${ARCH}/iso-cd/${ISO_NAME}"
