@@ -31,17 +31,41 @@ def _full_location(client: Client) -> dict:
     return loc
 
 
+def _center_id(client: Client) -> int | None:
+    if not client.room:
+        return None
+    floor = client.room.floor
+    if not floor:
+        return None
+    building = floor.building
+    if not building:
+        return None
+    return building.center_id
+
+
 def _peers(client: Client, db: Session) -> list:
     now = datetime.utcnow()
     peers = []
-    security = db.query(Client).filter(
-        Client.is_security == True,
-        Client.id != client.id,
-        Client.last_ip != None,
-        Client.last_seen >= now - ONLINE_THRESHOLD,
-    ).all()
-    for p in security:
-        peers.append({"client_id": p.id, "ip": p.last_ip})
+
+    # Equipos de seguridad: solo los del mismo centro que el cliente solicitante
+    client_center_id = _center_id(client)
+    if client_center_id:
+        security = (
+            db.query(Client)
+            .join(Room, Client.room_id == Room.id)
+            .join(Floor, Room.floor_id == Floor.id)
+            .join(Building, Floor.building_id == Building.id)
+            .filter(
+                Client.is_security == True,
+                Client.id != client.id,
+                Client.last_ip != None,
+                Client.last_seen >= now - ONLINE_THRESHOLD,
+                Building.center_id == client_center_id,
+            )
+            .all()
+        )
+        for p in security:
+            peers.append({"client_id": p.id, "ip": p.last_ip})
 
     if client.group_id:
         group_peers = db.query(Client).filter(

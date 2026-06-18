@@ -113,8 +113,10 @@
     </ol>
     <div class="alert alert-warning border-0 mt-3 mb-0">
       <i class="bi bi-shield-check me-2"></i>
-      <strong>Equipos de seguridad:</strong> reciben todas las alertas de todos los grupos,
-      sin excepción. Úselo para puestos de guardia o seguridad del centro.
+      <strong>Equipos de seguridad:</strong> reciben todas las alertas generadas dentro
+      de su mismo centro, independientemente del grupo. Un equipo de seguridad adscrito
+      al Centro A no recibirá alertas del Centro B. Úselo para puestos de guardia o
+      seguridad de cada centro.
     </div>
   </div>
 </div>
@@ -127,7 +129,7 @@
   <div class="card-body">
     <p>Los grupos determinan qué equipos reciben las alertas. Un equipo solo recibe la
     alerta de otro si ambos pertenecen al mismo grupo, o si el receptor está marcado como
-    equipo de seguridad.</p>
+    equipo de seguridad <strong>del mismo centro</strong>.</p>
     <h6 class="fw-semibold mt-3">Casos de uso habituales</h6>
     <ul>
       <li><strong>Grupo por planta</strong>: las alertas de esa planta llegan solo a los

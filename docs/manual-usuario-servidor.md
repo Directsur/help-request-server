@@ -82,25 +82,28 @@ el servidor. Aparece en la lista con:
 1. Pulse el botón de edición junto al equipo.
 2. Seleccione la sala en el desplegable de ubicaciones.
 3. Seleccione el grupo (opcional).
-4. Active **Equipo de seguridad** si este equipo debe recibir siempre todas las alertas,
-   independientemente del grupo.
+4. Active **Equipo de seguridad** si este equipo debe recibir todas las alertas generadas
+   en su centro, independientemente del grupo al que pertenezca quien las envíe.
 5. Pulse **Guardar**.
 
-> Los equipos de seguridad reciben todas las alertas de todos los grupos, sin excepción.
+> Los equipos de seguridad reciben todas las alertas de su centro, sin importar el grupo.
+> Un equipo de seguridad del Centro A **no** recibirá alertas del Centro B.
 
 ---
 
 ## Grupos
 
 Los grupos permiten filtrar qué equipos reciben las alertas. Un equipo solo recibe alertas
-del equipo que envía si ambos pertenecen al mismo grupo, o si el receptor es de seguridad.
+del equipo que envía si ambos pertenecen al mismo grupo, o si el receptor es un equipo de
+seguridad del mismo centro.
 
 ### Casos de uso típicos
 
 - **Grupo por planta**: todos los equipos de la primera planta en un grupo; las alertas de
-  esa planta solo llegan a esa planta (más los de seguridad).
+  esa planta solo llegan a esa planta (más los equipos de seguridad del mismo centro).
 - **Grupo por especialidad**: urgencias, consultas externas, etc.
-- **Sin grupo**: si ningún equipo tiene grupo asignado, las alertas llegan a todos.
+- **Sin grupo**: si ningún equipo tiene grupo asignado, las alertas llegan a todos los
+  equipos del centro.
 
 ### Crear un grupo
 

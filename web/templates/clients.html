@@ -7,7 +7,13 @@
     <table class="table table-hover mb-0" id="clients-table">
       <thead class="table-light">
         <tr>
-          <th>Equipo</th><th>Ubicación</th><th>Grupo</th><th>Seguridad</th><th>Estado</th><th>Última conexión</th>
+          <th>Equipo</th><th>Ubicación</th><th>Grupo</th>
+          <th>Seguridad
+            <i class="bi bi-info-circle text-muted ms-1"
+               title="Recibe todas las alertas de su centro, independientemente del grupo"
+               data-bs-toggle="tooltip"></i>
+          </th>
+          <th>Estado</th><th>Última conexión</th>
         </tr>
       </thead>
       <tbody>
@@ -65,5 +71,7 @@ async function setSecurity(clientId, value) {
   });
 }
 setInterval(() => location.reload(), 30000);
+document.querySelectorAll('[data-bs-toggle="tooltip"]').forEach(el =>
+  new bootstrap.Tooltip(el));
 </script>
 {% endblock %}
