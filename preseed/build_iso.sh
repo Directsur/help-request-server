@@ -86,9 +86,9 @@ fi
 cp "$PRESEED_FILE" "$WORK_DIR/iso/preseed.cfg"
 
 # ── 4. Modificar arranque BIOS (isolinux) ─────────────────────────────────────
-# priority=medium: con todo lo demás preseeded, solo aparecerá la pregunta del proxy.
+# priority=critical: suprime todas las preguntas con respuesta en el preseed.
 # file= actúa como respaldo por si el preseed del initrd no se aplica.
-PARAMS="auto=true priority=medium file=/cdrom/preseed.cfg"
+PARAMS="auto=true priority=critical file=/cdrom/preseed.cfg"
 
 TXT_CFG="$WORK_DIR/iso/isolinux/txt.cfg"
 ISOLINUX_CFG="$WORK_DIR/iso/isolinux/isolinux.cfg"
@@ -107,9 +107,11 @@ if [[ -f "$GRUB_CFG" ]]; then
     info "Modificando grub.cfg (UEFI)..."
     # Añade parámetros a las líneas 'linux' del instalador
     sed -i "s|^\(\s*linux\s\+.*/vmlinuz.*\)|\1 $PARAMS|" "$GRUB_CFG"
-    # Inserta timeout=5 s y default=1 antes del primer menuentry.
-    # Índice 0='Graphical install' (gtk/initrd.gz), índice 1='Install' (initrd.gz con preseed)
-    sed -i '0,/^menuentry /s/^menuentry /set default=1\nset timeout=5\n\nmenuentry /' "$GRUB_CFG"
+    # Elimina cualquier set default/timeout existente y los reinserta al principio
+    # para evitar que líneas posteriores del archivo original los sobreescriban.
+    # Índice 1='Install' (Graphical install=0, Install=1)
+    sed -i '/^\s*set default=/d; /^\s*set timeout=/d' "$GRUB_CFG"
+    sed -i "1s/^/set default=1\nset timeout=5\n\n/" "$GRUB_CFG"
 fi
 
 # ── 6. Reempaquetar ISO ───────────────────────────────────────────────────────
