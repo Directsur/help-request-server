@@ -45,7 +45,7 @@ if [[ -f "$CONFIG_DIR/env" ]]; then
     DB_PASSWORD=$(grep DB_PASSWORD "$CONFIG_DIR/env" | cut -d= -f2)
 else
     if [[ "$NONINTERACTIVE" == "1" ]]; then
-        DB_PASSWORD="${DB_PASSWORD:-$(python3 -c "import secrets; print(secrets.token_hex(16))")}"
+        DB_PASSWORD="${DB_PASSWORD:-$(openssl rand -hex 16)}"
         info "Contraseña de base de datos generada automáticamente."
     else
         ask "Contraseña para el usuario de base de datos '$DB_USER':"
