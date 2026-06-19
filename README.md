@@ -90,7 +90,9 @@ Para más detalles, consulta [`docs/manual-instalacion-servidor.md`](docs/manual
 
 ### Despliegue rápido con ISO preconfigurada
 
-Descarga la ISO desde la [página de releases](https://github.com/Directsur/help-request-server/releases). La única pregunta que aparece durante el arranque es el proxy HTTP (vacío si no se necesita). El resto es completamente automático: Debian 13 + servidor configurado y en marcha en 10-15 minutos.
+Descarga la ISO desde la [página de releases](https://github.com/Directsur/help-request-server/releases). La instalación es completamente desatendida: sin preguntas, sin intervención. Debian 13 + servidor configurado y en marcha en 10-15 minutos.
+
+Si tu entorno requiere proxy HTTP, genera la ISO con el proxy ya embebido (ver sección [Generar la ISO](#generar-la-iso)).
 
 - **Equipo físico** — graba la ISO en un USB con Rufus (Windows) o `dd` (Linux/macOS) y arranca desde él. El disco del equipo se formatea automáticamente.
 - **Máquina virtual** — arranca la ISO directamente en VMware (ESXi, Workstation), VirtualBox o Proxmox.
