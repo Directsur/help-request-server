@@ -19,7 +19,7 @@ con ella para tener el servidor funcionando en 10-15 minutos.
 | Acceso | Usuario | Contraseña |
 |---|---|---|
 | Root del sistema (SSH) | `root` | `Direct2025!` |
-| Interfaz web admin | `admin` | `admin` |
+| Interfaz web admin | `admin` | `Admin2025!` |
 | Base de datos | `helprequest` | *(generada automáticamente)* |
 
 > **Cambie estas contraseñas inmediatamente después del primer acceso.**
