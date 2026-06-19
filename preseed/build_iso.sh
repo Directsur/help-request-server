@@ -5,7 +5,7 @@
 # Genera una ISO de Debian 13 con instalación desatendida del servidor
 # de Solicitudes de Ayuda.
 #
-# Uso: bash preseed/build_iso.sh
+# Uso: bash preseed/build_iso.sh [--proxy http://proxy.empresa.com:3128]
 # Requisitos: xorriso, wget  (sudo apt-get install -y xorriso wget)
 
 set -e
@@ -14,6 +14,15 @@ RED='\033[0;31m'; GREEN='\033[0;32m'; YELLOW='\033[1;33m'; NC='\033[0m'
 info()  { echo -e "${GREEN}[+]${NC} $*"; }
 warn()  { echo -e "${YELLOW}[!]${NC} $*"; }
 error() { echo -e "${RED}[✗]${NC} $*"; exit 1; }
+
+# ── Argumentos ────────────────────────────────────────────────────────────────
+PROXY_URL=""
+while [[ $# -gt 0 ]]; do
+    case "$1" in
+        --proxy) PROXY_URL="$2"; shift 2 ;;
+        *) error "Uso: bash preseed/build_iso.sh [--proxy http://proxy.empresa.com:3128]" ;;
+    esac
+done
 
 # ── Configuración ──────────────────────────────────────────────────────────────
 DEBIAN_VERSION="13.5.0"
@@ -55,7 +64,17 @@ mkdir -p "$WORK_DIR/iso"
 xorriso -osirrox on -indev "$ISO_NAME" -extract / "$WORK_DIR/iso" 2>/dev/null
 chmod -R u+w "$WORK_DIR/iso"
 
-# ── 3. Incrustar preseed en el initrd ─────────────────────────────────────────
+# ── 3. Preparar preseed (aplicar proxy si se especificó) ─────────────────────
+PRESEED_WORK="$WORK_DIR/preseed.cfg"
+cp "$PRESEED_FILE" "$PRESEED_WORK"
+if [[ -n "$PROXY_URL" ]]; then
+    sed -i "s|^d-i mirror/http/proxy string.*|d-i mirror/http/proxy string $PROXY_URL|" "$PRESEED_WORK"
+    info "Proxy configurado: $PROXY_URL"
+else
+    info "Sin proxy (acceso directo a internet)"
+fi
+
+# ── 4. Incrustar preseed en el initrd ─────────────────────────────────────────
 # El preseed en el initrd se carga automáticamente sin parámetros de arranque.
 # Se copia también a la raíz de la ISO como respaldo (file=/cdrom/preseed.cfg).
 info "Incorporando preseed.cfg en el initrd..."
@@ -71,7 +90,7 @@ if [[ -n "$INITRD_PATH" ]]; then
     # cpio suele devolver código de error aunque funcione — se ignora con || true
     (cd "$INITRD_TMP" && zcat "$INITRD_FULL" | cpio -i --no-absolute-filenames 2>/dev/null) || true
     if [[ $(ls "$INITRD_TMP" 2>/dev/null | wc -l) -gt 0 ]]; then
-        cp "$PRESEED_FILE" "$INITRD_TMP/preseed.cfg"
+        cp "$PRESEED_WORK" "$INITRD_TMP/preseed.cfg"
         (cd "$INITRD_TMP" && find . | cpio -o -H newc 2>/dev/null | gzip -9 > "$INITRD_FULL") || \
             warn "Aviso: reempaquetado del initrd falló — se usará file=/cdrom/preseed.cfg como respaldo."
         info "Preseed incrustado en $INITRD_PATH"
@@ -83,9 +102,9 @@ else
     warn "No se encontró el initrd."
 fi
 # Copia también el preseed a la raíz de la ISO como método de respaldo
-cp "$PRESEED_FILE" "$WORK_DIR/iso/preseed.cfg"
+cp "$PRESEED_WORK" "$WORK_DIR/iso/preseed.cfg"
 
-# ── 4. Modificar arranque BIOS (isolinux) ─────────────────────────────────────
+# ── 5. Modificar arranque BIOS (isolinux) ─────────────────────────────────────
 # priority=critical: suprime todas las preguntas con respuesta en el preseed.
 # file= actúa como respaldo por si el preseed del initrd no se aplica.
 PARAMS="auto=true priority=critical file=/cdrom/preseed.cfg"
@@ -101,7 +120,7 @@ if [[ -f "$TXT_CFG" ]]; then
     sed -i 's/^timeout .*/timeout 50/'     "$ISOLINUX_CFG" 2>/dev/null || true
 fi
 
-# ── 5. Modificar arranque UEFI (grub) ────────────────────────────────────────
+# ── 6. Modificar arranque UEFI (grub) ────────────────────────────────────────
 GRUB_CFG="$WORK_DIR/iso/boot/grub/grub.cfg"
 if [[ -f "$GRUB_CFG" ]]; then
     info "Modificando grub.cfg (UEFI)..."
@@ -114,7 +133,7 @@ if [[ -f "$GRUB_CFG" ]]; then
     sed -i "1s/^/set default=1\nset timeout=5\n\n/" "$GRUB_CFG"
 fi
 
-# ── 6. Reempaquetar ISO ───────────────────────────────────────────────────────
+# ── 7. Reempaquetar ISO ───────────────────────────────────────────────────────
 info "Reempaquetando ISO → $OUTPUT_ISO ..."
 
 # Extraer el MBR híbrido de la ISO original (primeros 432 bytes)
@@ -160,6 +179,10 @@ echo "    Web admin:          admin / admin"
 echo ""
 warn "Cambie las contraseñas después del primer acceso."
 echo ""
+if [[ -n "$PROXY_URL" ]]; then
+    echo "  Proxy embebido:  $PROXY_URL"
+    echo ""
+fi
 echo "  Para crear una VM con esta ISO:"
 echo "    - VMware/VirtualBox: nueva VM, mínimo 1 vCPU, 1 GB RAM, 30 GB disco"
 echo "    - La instalación es completamente desatendida (~15 min con buena red)"
