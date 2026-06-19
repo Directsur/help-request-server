@@ -93,12 +93,16 @@ apt-get install -y -qq python3 python3-pip python3-venv mariadb-server mariadb-c
 
 # ─── 2. Arrancar y habilitar MariaDB ──────────────────────────────────────────
 info "Configurando MariaDB..."
-# enable crea el symlink de systemd y funciona en chroot.
-# start falla en chroot (systemd no corre); en ese caso se arranca mysqld_safe.
 systemctl enable mariadb
-if ! systemctl start mariadb 2>/dev/null; then
+systemctl start mariadb 2>/dev/null || true
+# En chroot (instalador), systemctl start devuelve 0 sin arrancar el daemon.
+# Comprobamos con mysqladmin ping si realmente está corriendo; si no, usamos mysqld_safe.
+if ! mysqladmin ping --silent 2>/dev/null; then
     mysqld_safe --user=mysql &>/dev/null &
-    sleep 5
+    for i in $(seq 1 30); do
+        mysqladmin ping --silent 2>/dev/null && break
+        sleep 1
+    done
 fi
 
 # ─── 3. Crear base de datos y usuario ─────────────────────────────────────────
