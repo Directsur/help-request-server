@@ -93,7 +93,13 @@ apt-get install -y -qq python3 python3-pip python3-venv mariadb-server mariadb-c
 
 # ─── 2. Arrancar y habilitar MariaDB ──────────────────────────────────────────
 info "Configurando MariaDB..."
-systemctl enable --now mariadb
+# enable crea el symlink de systemd y funciona en chroot.
+# start falla en chroot (systemd no corre); en ese caso se arranca mysqld_safe.
+systemctl enable mariadb
+if ! systemctl start mariadb 2>/dev/null; then
+    mysqld_safe --user=mysql &>/dev/null &
+    sleep 5
+fi
 
 # ─── 3. Crear base de datos y usuario ─────────────────────────────────────────
 info "Creando base de datos '$DB_NAME' y usuario '$DB_USER'..."
@@ -247,15 +253,18 @@ INSTALLED_COMMIT=$(git -C "$SCRIPT_DIR" rev-parse HEAD 2>/dev/null || echo "unkn
 echo "$INSTALLED_COMMIT" > "$INSTALL_DIR/.installed_commit"
 
 # ─── 15. Arrancar servicio ────────────────────────────────────────────────────
-info "Arrancando servicio..."
-systemctl restart "$SERVICE_NAME"
-sleep 2
-
-if systemctl is-active --quiet "$SERVICE_NAME"; then
-    info "Servicio activo correctamente."
+if systemctl is-system-running 2>/dev/null | grep -qE "running|degraded"; then
+    info "Arrancando servicio..."
+    systemctl restart "$SERVICE_NAME"
+    sleep 2
+    if systemctl is-active --quiet "$SERVICE_NAME"; then
+        info "Servicio activo correctamente."
+    else
+        warn "El servicio no arrancó. Revisa los logs:"
+        echo "  journalctl -u $SERVICE_NAME -n 30"
+    fi
 else
-    warn "El servicio no arrancó. Revisa los logs:"
-    echo "  journalctl -u $SERVICE_NAME -n 30"
+    info "Instalación en chroot — el servicio arrancará en el primer inicio del sistema."
 fi
 
 # ─── Resumen ──────────────────────────────────────────────────────────────────
