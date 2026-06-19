@@ -18,10 +18,13 @@ con ella para tener el servidor funcionando en 10-15 minutos.
 
 | Acceso | Usuario | Contraseña |
 |---|---|---|
-| Root del sistema (SSH) | `root` | `Direct2025!` |
+| SSH (sudo) | `sysadmin` | `Direct2025!` |
+| Root local | `root` | `Direct2025!` |
 | Interfaz web admin | `admin` | `Admin2025!` |
 | Base de datos | `helprequest` | *(generada automáticamente)* |
 
+> El acceso SSH con contraseña para `root` está desactivado. Use `sysadmin` y ejecute `sudo -i` para obtener privilegios de root.
+>
 > **Cambie estas contraseñas inmediatamente después del primer acceso.**
 
 ---
