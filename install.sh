@@ -84,6 +84,10 @@ fi
 
 # ─── 1. Dependencias del sistema ───────────────────────────────────────────────
 info "Actualizando repositorios e instalando dependencias..."
+# El late_command del instalador de Debian se ejecuta antes de que finish-install
+# elimine la entrada cdrom:// de sources.list. apt-get update falla si esa entrada
+# sigue presente y el medio no es accesible en ese momento.
+sed -i '/^deb cdrom:/d; /^deb-src cdrom:/d' /etc/apt/sources.list 2>/dev/null || true
 apt-get update -qq
 apt-get install -y -qq python3 python3-pip python3-venv mariadb-server mariadb-client
 
