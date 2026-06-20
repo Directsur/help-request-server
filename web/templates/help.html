@@ -100,8 +100,10 @@
   </div>
   <div class="card-body">
     <p>Los equipos se registran automáticamente la primera vez que el cliente arranca y
-    contacta con el servidor. Aparecen en la lista con su nombre de red, ubicación y
-    estado de conexión.</p>
+    contacta con el servidor. Cada equipo se identifica de forma única por su
+    <strong>dirección MAC</strong>, lo que evita duplicados aunque el equipo cambie de
+    nombre de red. En la lista se muestra el nombre de red junto a la MAC para facilitar
+    la identificación.</p>
     <h6 class="fw-semibold mt-3">Asignar ubicación y grupo</h6>
     <ol>
       <li>Pulse el botón de edición <i class="bi bi-pencil"></i> junto al equipo.</li>
@@ -111,6 +113,10 @@
           <em>todas</em> las alertas, independientemente del grupo.</li>
       <li>Pulse <strong>Guardar</strong>.</li>
     </ol>
+    <h6 class="fw-semibold mt-3">Eliminar un equipo</h6>
+    <p>Pulse el botón de papelera <i class="bi bi-trash"></i> junto al equipo y confirme
+    la acción. El equipo desaparece de la lista; si el cliente vuelve a arrancar,
+    se registrará de nuevo automáticamente.</p>
     <div class="alert alert-warning border-0 mt-3 mb-0">
       <i class="bi bi-shield-check me-2"></i>
       <strong>Equipos de seguridad:</strong> reciben todas las alertas generadas dentro
@@ -183,9 +189,21 @@
   </div>
   <div class="card-body">
 
-    <h6 class="fw-semibold">Responsable de prevención de riesgos</h6>
-    <p>Registre el nombre y correo electrónico del responsable. Recibirá los informes
-    periódicos programados.</p>
+    <h6 class="fw-semibold">Responsables de prevención de riesgos</h6>
+    <p>Puede configurar un responsable <strong>global</strong> y, opcionalmente, un
+    responsable diferente para cada <strong>centro</strong>:</p>
+    <ul>
+      <li>El <strong>responsable global</strong> recibe los informes de todos los centros
+          que no tengan un responsable específico asignado, y también las alertas sin
+          ubicación de centro.</li>
+      <li>Un <strong>responsable de centro</strong> recibe únicamente las alertas
+          generadas en su centro.</li>
+    </ul>
+    <p>Para editar un responsable existente, modifique los campos en la tabla y pulse el
+    botón de guardar <i class="bi bi-floppy"></i>. Para añadir un responsable de centro,
+    pulse <strong>Añadir por centro</strong>. Para eliminar un responsable de centro,
+    pulse el botón de papelera <i class="bi bi-trash"></i> (el responsable global no
+    puede eliminarse).</p>
 
     <h6 class="fw-semibold mt-3">Servidor de correo (SMTP)</h6>
     <p>Configure el servidor de correo saliente para que funcionen los informes por

@@ -69,9 +69,10 @@ solo están disponibles desde este interfaz web.
 Desde **Equipos** se ven y gestionan todos los equipos cliente registrados.
 
 Un equipo se registra automáticamente la primera vez que el cliente arranca y contacta con
-el servidor. Aparece en la lista con:
+el servidor. Cada equipo se identifica de forma única por su **dirección MAC**, lo que
+evita duplicados aunque el equipo cambie de nombre de red o de usuario. En la lista aparece:
 
-- **Nombre**: nombre de red del equipo.
+- **Nombre**: nombre de red (hostname) junto a la dirección MAC.
 - **Ubicación**: sala asignada.
 - **Grupo**: grupo al que pertenece.
 - **Seguridad**: indica si es un equipo de guardia/seguridad.
@@ -88,6 +89,11 @@ el servidor. Aparece en la lista con:
 
 > Los equipos de seguridad reciben todas las alertas de su centro, sin importar el grupo.
 > Un equipo de seguridad del Centro A **no** recibirá alertas del Centro B.
+
+### Eliminar un equipo
+
+Pulse el botón de papelera junto al equipo y confirme la acción. El registro desaparece de
+la lista; si el cliente vuelve a arrancar se registrará de nuevo automáticamente.
 
 ---
 
@@ -152,11 +158,24 @@ identificar los puntos de mayor incidencia.
 
 ## Configuración
 
-### Responsable de prevención de riesgos
+### Responsables de prevención de riesgos
 
-En **Configuración → Responsable** puede registrar el nombre y correo electrónico del
-responsable de prevención de riesgos laborales del centro. Este correo recibirá los
-informes periódicos programados.
+En **Configuración** puede registrar uno o varios responsables de prevención de riesgos
+laborales. Hay dos tipos:
+
+- **Responsable global** (siempre presente): recibe los informes de los centros que no
+  tengan un responsable específico asignado, y las alertas sin centro configurado.
+- **Responsable de centro**: recibe únicamente los informes de las alertas generadas en
+  su centro.
+
+Para editar un responsable, modifique los campos de nombre y email en la tabla y pulse
+el botón de guardar (disquete). Para añadir un responsable de centro, pulse el botón
+**Añadir por centro**, seleccione el centro en el desplegable e introduzca el nombre y
+email. Para eliminar un responsable de centro, pulse el botón de papelera (el global no
+puede eliminarse).
+
+Si dos responsables comparten el mismo email (por ejemplo, el mismo responsable cubre
+varios centros), solo recibirá un correo con el subconjunto de alertas que le corresponde.
 
 ### Configuración SMTP (correo saliente)
 

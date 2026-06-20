@@ -20,7 +20,7 @@ Este repositorio contiene el **componente servidor**: API REST, interfaz web de 
 - **Equipos de seguridad** que reciben siempre todos los avisos, independientemente del grupo
 - **Historial de alertas** con filtros por fecha, centro, edificio y usuario
 - **Informes** para identificar puntos de mayor incidencia
-- **Envío periódico de informes** por correo al responsable de prevención de riesgos
+- **Envío periódico de informes** por correo — responsable global y responsable por centro (con fallback al global)
 - **Modo simulacro** separado del historial real, con límite de 5 registros conservados
 - **Atajo de teclado global** configurable desde el servidor y distribuido automáticamente a todos los clientes
 - **Descubrimiento automático** por UDP broadcast — los clientes encuentran el servidor sin configuración manual
@@ -164,7 +164,7 @@ sudo reset-admin-password
 | Ubicaciones     | Jerarquía Centro → Edificio → Planta → Sala              |
 | Solicitudes     | Historial de alertas reales + sección separada de simulacros |
 | Informes        | Resúmenes filtrables por fecha, centro, edificio, usuario |
-| Configuración   | Atajo de teclado global, SMTP, responsable de prevención, programación de correos |
+| Configuración   | Atajo de teclado global, SMTP, responsables de prevención por centro, programación de correos |
 | Ayuda           | Manual de usuario integrado                              |
 
 ---
