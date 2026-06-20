@@ -52,7 +52,7 @@ def help_page(request: Request):
     redir = require_auth(request)
     if redir:
         return redir
-    return templates.TemplateResponse("help.html", {"request": request})
+    return templates.TemplateResponse(request, "help.html", {})
 
 
 @app.get("/dashboard")
@@ -74,8 +74,7 @@ def dashboard(request: Request):
         alerts_month = db.query(Alert).filter(Alert.triggered_at >= month_start).count()
         recent = db.query(Alert).order_by(Alert.triggered_at.desc()).limit(10).all()
 
-    return templates.TemplateResponse("dashboard.html", {
-        "request": request,
+    return templates.TemplateResponse(request, "dashboard.html", {
         "online_count": online_count,
         "security_count": security_count,
         "alerts_today": alerts_today,

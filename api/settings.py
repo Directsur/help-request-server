@@ -47,8 +47,7 @@ def settings_view(request: Request, db: Session = Depends(get_db)):
     smtp = db.query(SmtpConfig).first()
     schedule = db.query(EmailSchedule).first()
     sc = db.query(ServerConfig).first()
-    return templates.TemplateResponse("settings.html", {
-        "request": request,
+    return templates.TemplateResponse(request, "settings.html", {
         "officer": officer,
         "smtp": smtp,
         "schedule": schedule,

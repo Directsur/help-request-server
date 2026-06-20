@@ -26,7 +26,7 @@ def groups_view(request: Request, db: Session = Depends(get_db)):
     for g in groups:
         count = db.query(Client).filter(Client.group_id == g.id).count()
         data.append({"id": g.id, "name": g.name, "client_count": count})
-    return templates.TemplateResponse("groups.html", {"request": request, "groups": data})
+    return templates.TemplateResponse(request, "groups.html", {"groups": data})
 
 
 @router.get("/api/groups")

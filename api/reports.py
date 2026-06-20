@@ -53,8 +53,7 @@ def reports_view(request: Request, db: Session = Depends(get_db),
     ]
     max_total = hotspots[0]["total"] if hotspots else 1
 
-    return templates.TemplateResponse("reports.html", {
-        "request": request,
+    return templates.TemplateResponse(request, "reports.html", {
         "total": total,
         "unique_users": unique_users,
         "unique_clients": unique_clients,

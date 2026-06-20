@@ -24,7 +24,7 @@ def get_current_user(request: Request) -> str | None:
 
 @router.get("/login", response_class=HTMLResponse)
 def login_form(request: Request, error: str = ""):
-    return templates.TemplateResponse("login.html", {"request": request, "error": error})
+    return templates.TemplateResponse(request, "login.html", {"error": error})
 
 
 @router.post("/login")
@@ -33,8 +33,8 @@ def login(request: Request, username: str = Form(...), password: str = Form(...)
     user = db.query(AdminUser).filter(AdminUser.username == username).first()
     if not user or not pwd_context.verify(password, user.password_hash):
         return templates.TemplateResponse(
-            "login.html",
-            {"request": request, "error": "Usuario o contraseña incorrectos"},
+            request, "login.html",
+            {"error": "Usuario o contraseña incorrectos"},
             status_code=401,
         )
     request.session["user"] = username

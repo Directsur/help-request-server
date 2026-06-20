@@ -111,8 +111,7 @@ def alerts_view(request: Request, db: Session = Depends(get_db),
         .limit(MAX_DRILL_RECORDS)
         .all()
     )
-    return templates.TemplateResponse("alerts.html", {
-        "request": request,
+    return templates.TemplateResponse(request, "alerts.html", {
         "alerts": alerts,
         "drills": drills,
         "filters": {

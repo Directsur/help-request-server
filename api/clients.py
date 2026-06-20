@@ -136,8 +136,7 @@ def clients_view(request: Request, db: Session = Depends(get_db)):
             "online": online,
             "last_seen": c.last_seen.strftime("%d/%m/%Y %H:%M") if c.last_seen else "—",
         })
-    return templates.TemplateResponse("clients.html", {
-        "request": request,
+    return templates.TemplateResponse(request, "clients.html", {
         "clients": data,
         "groups": [{"id": g.id, "name": g.name} for g in groups],
     })

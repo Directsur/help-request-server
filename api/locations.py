@@ -51,7 +51,7 @@ def locations_view(request: Request, db: Session = Depends(get_db)):
                 b_data["floors"].append(f_data)
             c_data["buildings"].append(b_data)
         tree.append(c_data)
-    return templates.TemplateResponse("locations.html", {"request": request, "tree": tree})
+    return templates.TemplateResponse(request, "locations.html", {"tree": tree})
 
 
 # --- Centers ---
