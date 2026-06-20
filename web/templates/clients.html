@@ -13,12 +13,12 @@
                title="Recibe todas las alertas de su centro, independientemente del grupo"
                data-bs-toggle="tooltip"></i>
           </th>
-          <th>Estado</th><th>Última conexión</th>
+          <th>Estado</th><th>Última conexión</th><th></th>
         </tr>
       </thead>
       <tbody>
         {% for c in clients %}
-        <tr>
+        <tr id="row-{{ c.id | replace('.', '-') | replace(' ', '-') }}">
           <td><code>{{ c.id }}</code><br><small class="text-muted">{{ c.name }}</small></td>
           <td>{{ c.location or "—" }}</td>
           <td>
@@ -45,9 +45,15 @@
             {% endif %}
           </td>
           <td><small>{{ c.last_seen }}</small></td>
+          <td>
+            <button class="btn btn-sm btn-outline-danger" title="Eliminar equipo"
+                    onclick="deleteClient('{{ c.id }}')">
+              <i class="bi bi-trash"></i>
+            </button>
+          </td>
         </tr>
         {% else %}
-        <tr><td colspan="6" class="text-center text-muted py-3">No hay equipos registrados</td></tr>
+        <tr><td colspan="7" class="text-center text-muted py-3">No hay equipos registrados</td></tr>
         {% endfor %}
       </tbody>
     </table>
@@ -69,6 +75,16 @@ async function setSecurity(clientId, value) {
     headers: {'Content-Type': 'application/json'},
     body: JSON.stringify({is_security: value})
   });
+}
+async function deleteClient(clientId) {
+  if (!confirm(`¿Eliminar el equipo "${clientId}"?\nSi vuelve a conectarse se registrará de nuevo automáticamente.`)) return;
+  const r = await fetch(`/api/clients/${encodeURIComponent(clientId)}`, {method: 'DELETE'});
+  if (r.ok) {
+    const rowId = 'row-' + clientId.replaceAll('.', '-').replaceAll(' ', '-');
+    document.getElementById(rowId)?.remove();
+  } else {
+    alert('Error al eliminar el equipo.');
+  }
 }
 setInterval(() => location.reload(), 30000);
 document.querySelectorAll('[data-bs-toggle="tooltip"]').forEach(el =>

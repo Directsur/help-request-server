@@ -188,6 +188,18 @@ def register_client(client_id: str, data: RegisterIn, request: Request,
     }
 
 
+@router.delete("/api/clients/{client_id}")
+def delete_client(client_id: str, request: Request, db: Session = Depends(get_db)):
+    if not request.session.get("user"):
+        return JSONResponse({"error": "no autorizado"}, status_code=401)
+    client = db.get(Client, client_id)
+    if not client:
+        return JSONResponse({"error": "no encontrado"}, status_code=404)
+    db.delete(client)
+    db.commit()
+    return {"ok": True}
+
+
 @router.post("/api/clients/{client_id}/heartbeat")
 def heartbeat(client_id: str, request: Request, db: Session = Depends(get_db)):
     ip = request.client.host
