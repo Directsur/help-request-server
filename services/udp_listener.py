@@ -5,7 +5,7 @@ import socket
 import threading
 from datetime import datetime
 from sqlalchemy.orm import Session
-from database import Alert, Client, engine
+from database import Client, engine
 
 
 def _handle(sock: socket.socket, msg: dict, addr: tuple):
@@ -24,32 +24,6 @@ def _handle(sock: socket.socket, msg: dict, addr: tuple):
                     client.last_ip = addr[0]
                     client.last_seen = datetime.utcnow()
                     db.commit()
-
-    elif msg_type == "ALERT":
-        with Session(engine) as db:
-            triggered_at = datetime.utcnow()
-            if msg.get("timestamp"):
-                try:
-                    triggered_at = datetime.fromisoformat(msg["timestamp"])
-                except ValueError:
-                    pass
-            is_drill = bool(msg.get("is_drill", False))
-            alert = Alert(
-                client_id=msg.get("client_id", ""),
-                username=msg.get("username", ""),
-                room=msg.get("location", {}).get("room", ""),
-                floor=msg.get("location", {}).get("floor", ""),
-                building=msg.get("location", {}).get("building", ""),
-                center=msg.get("location", {}).get("center", ""),
-                group_id=msg.get("group_id"),
-                is_drill=is_drill,
-                triggered_at=triggered_at,
-            )
-            db.add(alert)
-            db.commit()
-            if is_drill:
-                from api.alerts import _purge_old_drills
-                _purge_old_drills(db)
 
 
 def start_udp_listener(port: int = 54321):
