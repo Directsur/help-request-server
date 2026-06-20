@@ -4,10 +4,11 @@ import smtplib
 from datetime import datetime, timedelta
 from email.mime.text import MIMEText
 from sqlalchemy.orm import Session
-from database import Alert, EmailSchedule, RiskOfficer, SmtpConfig, engine
+from database import Alert, Client, EmailSchedule, RiskOfficer, SmtpConfig, engine
 
 
-def _build_report(alerts: list, period_start: datetime, period_end: datetime) -> str:
+def _build_report(alerts: list, period_start: datetime, period_end: datetime,
+                  client_names: dict) -> str:
     total = len(alerts)
     users = set(a.username for a in alerts if a.username)
     hotspots: dict[str, int] = {}
@@ -17,7 +18,7 @@ def _build_report(alerts: list, period_start: datetime, period_end: datetime) ->
     sorted_hotspots = sorted(hotspots.items(), key=lambda x: x[1], reverse=True)
 
     lines = [
-        f"Informe de solicitudes de ayuda",
+        "Informe de solicitudes de ayuda",
         f"Período: {period_start.strftime('%d/%m/%Y')} — {period_end.strftime('%d/%m/%Y')}",
         "",
         "RESUMEN",
@@ -28,9 +29,11 @@ def _build_report(alerts: list, period_start: datetime, period_end: datetime) ->
         lines.append(f"  Punto más frecuente: {sorted_hotspots[0][0]} ({sorted_hotspots[0][1]} solicitudes)")
     lines += ["", "DETALLE"]
     for a in alerts:
-        loc = " > ".join(filter(None, [a.center, a.building, a.floor, a.room]))
+        loc    = " > ".join(filter(None, [a.center, a.building, a.floor, a.room]))
+        name   = client_names.get(a.client_id)
+        equipo = f"{name} ({a.client_id})" if name else (a.client_id or "—")
         lines.append(
-            f"  {a.triggered_at.strftime('%d/%m/%Y %H:%M')}  |  {a.username or '—'}  |  {a.client_id or '—'}  |  {loc}"
+            f"  {a.triggered_at.strftime('%d/%m/%Y %H:%M')}  |  {a.username or '—'}  |  {equipo}  |  {loc}"
         )
     lines += ["", "PUNTOS DE MAYOR FRECUENCIA"]
     for i, (loc, count) in enumerate(sorted_hotspots[:10], 1):
@@ -91,7 +94,10 @@ def send_report_email(db: Session | None = None):
             Alert.is_drill == False,
         ).order_by(Alert.triggered_at.desc()).all()
 
-        body = _build_report(alerts, period_start, now)
+        ids = {a.client_id for a in alerts if a.client_id}
+        client_names = {c.id: c.name for c in db.query(Client).filter(Client.id.in_(ids)).all()}
+
+        body = _build_report(alerts, period_start, now, client_names)
         subject = (
             f"Informe de solicitudes de ayuda — "
             f"{period_start.strftime('%d/%m/%Y')} al {now.strftime('%d/%m/%Y')}"
