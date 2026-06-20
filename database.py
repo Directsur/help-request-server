@@ -1,7 +1,7 @@
 # Copyright (C) 2025-2026 Direct Sevilla Global Services SL
 # SPDX-License-Identifier: AGPL-3.0-or-later
 from sqlalchemy import (Boolean, Column, DateTime, ForeignKey, Integer,
-                        String, Text, Time, create_engine)
+                        String, Text, Time, create_engine, text)
 from sqlalchemy.orm import DeclarativeBase, Session, relationship
 from config import DB_HOST, DB_PORT, DB_NAME, DB_USER, DB_PASSWORD
 
@@ -95,9 +95,11 @@ class AdminUser(Base):
 
 class RiskOfficer(Base):
     __tablename__ = "risk_officer"
-    id    = Column(Integer, primary_key=True, autoincrement=True)
-    name  = Column(String(256))
-    email = Column(String(256))
+    id        = Column(Integer, primary_key=True, autoincrement=True)
+    name      = Column(String(256))
+    email     = Column(String(256))
+    center_id = Column(Integer, ForeignKey("centers.id"), nullable=True)
+    center    = relationship("Center")
 
 
 class SmtpConfig(Base):
@@ -138,3 +140,23 @@ def get_db():
 
 def init_db():
     Base.metadata.create_all(engine)
+    _migrate(engine)
+
+
+def _migrate(eng):
+    """Migraciones incrementales que create_all no aplica en tablas existentes."""
+    with eng.connect() as conn:
+        # v2: responsable de prevención por centro
+        result = conn.execute(text(
+            "SELECT COUNT(*) FROM information_schema.columns "
+            "WHERE table_schema = DATABASE() "
+            "AND table_name = 'risk_officer' AND column_name = 'center_id'"
+        ))
+        if result.scalar() == 0:
+            conn.execute(text(
+                "ALTER TABLE risk_officer "
+                "ADD COLUMN center_id INT NULL, "
+                "ADD CONSTRAINT fk_officer_center "
+                "FOREIGN KEY (center_id) REFERENCES centers(id) ON DELETE CASCADE"
+            ))
+            conn.commit()

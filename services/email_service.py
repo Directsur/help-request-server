@@ -73,10 +73,12 @@ def send_report_email(db: Session | None = None):
         close_db = True
     try:
         smtp_cfg = db.query(SmtpConfig).first()
-        officer = db.query(RiskOfficer).first()
         schedule = db.query(EmailSchedule).first()
+        if not smtp_cfg:
+            return
 
-        if not smtp_cfg or not officer or not officer.email:
+        officers = db.query(RiskOfficer).all()
+        if not officers:
             return
 
         now = datetime.utcnow()
@@ -88,21 +90,48 @@ def send_report_email(db: Session | None = None):
         else:
             period_start = now - timedelta(weeks=1)
 
-        alerts = db.query(Alert).filter(
+        all_alerts = db.query(Alert).filter(
             Alert.triggered_at >= period_start,
             Alert.triggered_at <= now,
             Alert.is_drill == False,
         ).order_by(Alert.triggered_at.desc()).all()
 
-        ids = {a.client_id for a in alerts if a.client_id}
+        ids = {a.client_id for a in all_alerts if a.client_id}
         client_names = {c.id: c.name for c in db.query(Client).filter(Client.id.in_(ids)).all()}
 
-        body = _build_report(alerts, period_start, now, client_names)
-        subject = (
+        # Centros con responsable específico (nombre del centro)
+        assigned_centers = {
+            o.center.name for o in officers if o.center_id is not None and o.center
+        }
+
+        subject_base = (
             f"Informe de solicitudes de ayuda — "
             f"{period_start.strftime('%d/%m/%Y')} al {now.strftime('%d/%m/%Y')}"
         )
-        _send(smtp_cfg, officer.email, subject, body)
+        sent_to: set[str] = set()
+
+        for officer in officers:
+            if not officer.email:
+                continue
+
+            if officer.center_id is not None and officer.center:
+                # Responsable de centro: solo alertas de su centro
+                center_name = officer.center.name
+                subset = [a for a in all_alerts if a.center == center_name]
+                subject = subject_base + f" — {center_name}"
+            else:
+                # Responsable global: alertas sin centro o de centros sin responsable
+                subset = [a for a in all_alerts
+                          if not a.center or a.center not in assigned_centers]
+                subject = subject_base
+
+            if not subset:
+                continue
+            if officer.email in sent_to:
+                continue
+
+            _send(smtp_cfg, officer.email, subject, _build_report(subset, period_start, now, client_names))
+            sent_to.add(officer.email)
 
         if schedule:
             schedule.last_sent = now

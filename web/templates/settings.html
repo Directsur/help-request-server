@@ -42,20 +42,93 @@
     </div>
   </div>
 
-  <div class="col-md-6">
+  <div class="col-12">
     <div class="card">
-      <div class="card-header">Responsable de Prevención de Riesgos</div>
-      <div class="card-body">
-        <div class="mb-3">
-          <label class="form-label">Nombre</label>
-          <input type="text" id="officerName" class="form-control" value="{{ officer.name if officer else '' }}">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <span>Responsables de Prevención de Riesgos</span>
+        <button class="btn btn-sm btn-outline-primary" onclick="addOfficerRow()">
+          <i class="bi bi-plus-lg me-1"></i>Añadir por centro
+        </button>
+      </div>
+      <div class="card-body p-0">
+        <table class="table table-sm mb-0" id="officersTable">
+          <thead class="table-light">
+            <tr>
+              <th style="width:30%">Ámbito</th>
+              <th style="width:25%">Nombre</th>
+              <th style="width:30%">Email</th>
+              <th style="width:15%"></th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for o in officers %}
+            <tr data-id="{{ o.id }}" data-center-id="{{ o.center_id or '' }}">
+              <td>
+                {% if o.center_id %}
+                  <span class="badge bg-secondary">{{ o.center.name }}</span>
+                {% else %}
+                  <span class="badge bg-primary">Global (fallback)</span>
+                {% endif %}
+              </td>
+              <td><input type="text" class="form-control form-control-sm off-name" value="{{ o.name or '' }}"></td>
+              <td><input type="email" class="form-control form-control-sm off-email" value="{{ o.email or '' }}"></td>
+              <td class="text-end">
+                <button class="btn btn-sm btn-outline-success me-1" onclick="saveOfficerRow(this)" title="Guardar">
+                  <i class="bi bi-floppy"></i>
+                </button>
+                {% if o.center_id %}
+                <button class="btn btn-sm btn-outline-danger" onclick="deleteOfficerRow(this, {{ o.id }})" title="Eliminar">
+                  <i class="bi bi-trash"></i>
+                </button>
+                {% endif %}
+              </td>
+            </tr>
+            {% else %}
+            <tr id="emptyRow">
+              <td colspan="4" class="text-center text-muted py-2 small">
+                No hay responsables configurados. Añade al menos uno global.
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      <div class="card-footer small text-muted">
+        El responsable <strong>Global</strong> recibe las alertas sin centro asignado y de centros sin responsable específico.
+      </div>
+    </div>
+    <div id="officerMsg" class="mt-2 small"></div>
+  </div>
+
+  <!-- Modal añadir responsable por centro -->
+  <div class="modal fade" id="addOfficerModal" tabindex="-1">
+    <div class="modal-dialog modal-sm">
+      <div class="modal-content">
+        <div class="modal-header py-2">
+          <h6 class="modal-title">Nuevo responsable por centro</h6>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
         </div>
-        <div class="mb-3">
-          <label class="form-label">Email</label>
-          <input type="email" id="officerEmail" class="form-control" value="{{ officer.email if officer else '' }}">
+        <div class="modal-body">
+          <div class="mb-2">
+            <label class="form-label small">Centro</label>
+            <select id="newOfficerCenter" class="form-select form-select-sm">
+              {% for c in centers %}
+              <option value="{{ c.id }}">{{ c.name }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="mb-2">
+            <label class="form-label small">Nombre</label>
+            <input type="text" id="newOfficerName" class="form-control form-control-sm">
+          </div>
+          <div class="mb-2">
+            <label class="form-label small">Email</label>
+            <input type="email" id="newOfficerEmail" class="form-control form-control-sm">
+          </div>
         </div>
-        <button class="btn btn-primary btn-sm" onclick="saveOfficer()">Guardar</button>
-        <span id="officerMsg" class="ms-2 small text-success"></span>
+        <div class="modal-footer py-2">
+          <button class="btn btn-sm btn-primary" onclick="confirmAddOfficer()">Añadir</button>
+        </div>
       </div>
     </div>
   </div>
@@ -212,14 +285,63 @@ function updateFreqUI() {
 }
 updateFreqUI();
 
-async function saveOfficer() {
+const _addOfficerModal = new bootstrap.Modal(document.getElementById('addOfficerModal'));
+
+function addOfficerRow() {
+  document.getElementById('newOfficerName').value = '';
+  document.getElementById('newOfficerEmail').value = '';
+  _addOfficerModal.show();
+}
+
+async function confirmAddOfficer() {
+  const centerId = parseInt(document.getElementById('newOfficerCenter').value);
+  const name     = document.getElementById('newOfficerName').value.trim();
+  const email    = document.getElementById('newOfficerEmail').value.trim();
+  const msg      = document.getElementById('officerMsg');
   const r = await fetch('/api/risk-officer', {
-    method: 'PUT', headers: {'Content-Type':'application/json'},
-    body: JSON.stringify({name: document.getElementById('officerName').value, email: document.getElementById('officerEmail').value})
+    method: 'POST', headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({name, email, center_id: centerId}),
   });
-  const msg = document.getElementById('officerMsg');
+  if (!r.ok) {
+    const d = await r.json();
+    msg.textContent = 'Error: ' + (d.error || 'desconocido');
+    msg.className = 'mt-2 small text-danger';
+    return;
+  }
+  _addOfficerModal.hide();
+  location.reload();
+}
+
+async function saveOfficerRow(btn) {
+  const row     = btn.closest('tr');
+  const id      = row.dataset.id;
+  const centerId = row.dataset.centerId ? parseInt(row.dataset.centerId) : null;
+  const name    = row.querySelector('.off-name').value.trim();
+  const email   = row.querySelector('.off-email').value.trim();
+  const msg     = document.getElementById('officerMsg');
+  const url     = id ? `/api/risk-officer/${id}` : '/api/risk-officer';
+  const method  = id ? 'PUT' : 'PUT';
+  const r = await fetch(url, {
+    method, headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({name, email, center_id: centerId}),
+  });
   msg.textContent = r.ok ? 'Guardado ✓' : 'Error al guardar';
-  msg.className = r.ok ? 'ms-2 small text-success' : 'ms-2 small text-danger';
+  msg.className = r.ok ? 'mt-2 small text-success' : 'mt-2 small text-danger';
+}
+
+async function deleteOfficerRow(btn, id) {
+  if (!confirm('¿Eliminar este responsable?')) return;
+  const r = await fetch(`/api/risk-officer/${id}`, {method: 'DELETE'});
+  const msg = document.getElementById('officerMsg');
+  if (r.ok) {
+    btn.closest('tr').remove();
+    msg.textContent = 'Eliminado ✓';
+    msg.className = 'mt-2 small text-success';
+  } else {
+    const d = await r.json();
+    msg.textContent = 'Error: ' + (d.error || 'desconocido');
+    msg.className = 'mt-2 small text-danger';
+  }
 }
 
 async function saveSMTP() {
