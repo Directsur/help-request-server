@@ -10,7 +10,7 @@ from pydantic import BaseModel
 from sqlalchemy import func
 from sqlalchemy.orm import Session
 from api.auth import require_auth
-from database import Alert, get_db
+from database import Alert, Client, get_db
 
 router = APIRouter()
 templates = Jinja2Templates(directory="web/templates")
@@ -92,6 +92,18 @@ def receive_alert(data: AlertIn, db: Session = Depends(get_db)):
     return {"ok": True, "id": alert.id}
 
 
+def _enrich(alerts: list, db: Session) -> list:
+    """Añade client_name a cada alerta consultando la tabla clients."""
+    ids = {a.client_id for a in alerts if a.client_id}
+    names = {c.id: c.name for c in db.query(Client).filter(Client.id.in_(ids)).all()}
+    result = []
+    for a in alerts:
+        d = {col.name: getattr(a, col.name) for col in a.__table__.columns}
+        d["client_name"] = names.get(a.client_id) or ""
+        result.append(d)
+    return result
+
+
 @router.get("/alerts", response_class=HTMLResponse)
 def alerts_view(request: Request, db: Session = Depends(get_db),
                 from_date: str = "", to_date: str = "", username: str = "",
@@ -112,8 +124,8 @@ def alerts_view(request: Request, db: Session = Depends(get_db),
         .all()
     )
     return templates.TemplateResponse(request, "alerts.html", {
-        "alerts": alerts,
-        "drills": drills,
+        "alerts": _enrich(alerts, db),
+        "drills": _enrich(drills, db),
         "filters": {
             "from_date": from_date, "to_date": to_date, "username": username,
             "client_id": client_id, "center": center, "building": building,

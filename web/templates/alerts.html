@@ -61,7 +61,10 @@
         <tr>
           <td>{{ a.triggered_at.strftime("%d/%m/%Y %H:%M") }}</td>
           <td>{{ a.username or "—" }}</td>
-          <td><code>{{ a.client_id or "—" }}</code></td>
+          <td>
+            {% if a.client_name %}<strong>{{ a.client_name }}</strong><br>{% endif %}
+            <code class="text-muted small">{{ a.client_id or "—" }}</code>
+          </td>
           <td>{{ a.center or "—" }}</td>
           <td>{{ a.building or "—" }}</td>
           <td>{{ a.floor or "—" }}</td>
@@ -90,7 +93,10 @@
         <tr>
           <td>{{ a.triggered_at.strftime("%d/%m/%Y %H:%M") }}</td>
           <td>{{ a.username or "—" }}</td>
-          <td><code>{{ a.client_id or "—" }}</code></td>
+          <td>
+            {% if a.client_name %}<strong>{{ a.client_name }}</strong><br>{% endif %}
+            <code class="text-muted small">{{ a.client_id or "—" }}</code>
+          </td>
           <td>{{ [a.center, a.building, a.floor, a.room] | select("string") | join(" > ") }}</td>
         </tr>
         {% endfor %}
