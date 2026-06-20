@@ -9,7 +9,7 @@ from database import AdminUser, get_db
 
 router = APIRouter()
 templates = Jinja2Templates(directory="web/templates")
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto", bcrypt__truncate_error=False)
 
 
 def require_auth(request: Request):
