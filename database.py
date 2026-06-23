@@ -66,6 +66,7 @@ class Client(Base):
     room_id     = Column(Integer, ForeignKey("rooms.id"))
     group_id    = Column(Integer, ForeignKey("groups.id"))
     is_security = Column(Boolean, default=False)
+    is_portable = Column(Boolean, default=False)
     last_ip     = Column(String(45))
     last_seen   = Column(DateTime)
     room        = relationship("Room", back_populates="clients")
@@ -158,5 +159,17 @@ def _migrate(eng):
                 "ADD COLUMN center_id INT NULL, "
                 "ADD CONSTRAINT fk_officer_center "
                 "FOREIGN KEY (center_id) REFERENCES centers(id) ON DELETE CASCADE"
+            ))
+            conn.commit()
+
+        # v3: equipo portátil
+        result = conn.execute(text(
+            "SELECT COUNT(*) FROM information_schema.columns "
+            "WHERE table_schema = DATABASE() "
+            "AND table_name = 'clients' AND column_name = 'is_portable'"
+        ))
+        if result.scalar() == 0:
+            conn.execute(text(
+                "ALTER TABLE clients ADD COLUMN is_portable BOOLEAN NOT NULL DEFAULT FALSE"
             ))
             conn.commit()

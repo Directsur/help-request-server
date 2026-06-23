@@ -13,6 +13,11 @@
                title="Recibe todas las alertas de su centro, independientemente del grupo"
                data-bs-toggle="tooltip"></i>
           </th>
+          <th>Portátil
+            <i class="bi bi-info-circle text-muted ms-1"
+               title="La ventana de ubicación aparece en cada inicio de sesión"
+               data-bs-toggle="tooltip"></i>
+          </th>
           <th>Estado</th><th>Última conexión</th><th></th>
         </tr>
       </thead>
@@ -37,6 +42,13 @@
                      onchange="setSecurity('{{ c.id }}', this.checked)">
             </div>
           </td>
+          <td class="text-center">
+            <div class="form-check form-switch d-flex justify-content-center">
+              <input class="form-check-input" type="checkbox" role="switch"
+                     {% if c.is_portable %}checked{% endif %}
+                     onchange="setPortable('{{ c.id }}', this.checked)">
+            </div>
+          </td>
           <td>
             {% if c.online %}
             <span class="badge bg-success">● En línea</span>
@@ -53,7 +65,7 @@
           </td>
         </tr>
         {% else %}
-        <tr><td colspan="7" class="text-center text-muted py-3">No hay equipos registrados</td></tr>
+        <tr><td colspan="8" class="text-center text-muted py-3">No hay equipos registrados</td></tr>
         {% endfor %}
       </tbody>
     </table>
@@ -74,6 +86,13 @@ async function setSecurity(clientId, value) {
     method: 'PUT',
     headers: {'Content-Type': 'application/json'},
     body: JSON.stringify({is_security: value})
+  });
+}
+async function setPortable(clientId, value) {
+  await fetch(`/api/clients/${clientId}/portable`, {
+    method: 'PUT',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({is_portable: value})
   });
 }
 async function deleteClient(clientId) {

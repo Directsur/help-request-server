@@ -112,6 +112,9 @@ class GroupAssignIn(BaseModel):
 class SecurityIn(BaseModel):
     is_security: bool
 
+class PortableIn(BaseModel):
+    is_portable: bool
+
 
 @router.get("/clients", response_class=HTMLResponse)
 def clients_view(request: Request, db: Session = Depends(get_db)):
@@ -133,6 +136,7 @@ def clients_view(request: Request, db: Session = Depends(get_db)):
             "group_id": c.group_id,
             "group_name": c.group.name if c.group else "—",
             "is_security": c.is_security,
+            "is_portable": c.is_portable,
             "online": online,
             "last_seen": c.last_seen.strftime("%d/%m/%Y %H:%M") if c.last_seen else "—",
         })
@@ -184,6 +188,7 @@ def register_client(client_id: str, data: RegisterIn, request: Request,
         "room_id": client.room_id,
         "group_id": client.group_id,
         "is_security": client.is_security,
+        "is_portable": client.is_portable,
         "peers": _peers(client, db),
     }
 
@@ -254,6 +259,19 @@ def set_security(client_id: str, data: SecurityIn, request: Request,
     if not client:
         return JSONResponse({"error": "no encontrado"}, status_code=404)
     client.is_security = data.is_security
+    db.commit()
+    return {"ok": True}
+
+
+@router.put("/api/clients/{client_id}/portable")
+def set_portable(client_id: str, data: PortableIn, request: Request,
+                 db: Session = Depends(get_db)):
+    if not request.session.get("user"):
+        return JSONResponse({"error": "no autorizado"}, status_code=401)
+    client = db.get(Client, client_id)
+    if not client:
+        return JSONResponse({"error": "no encontrado"}, status_code=404)
+    client.is_portable = data.is_portable
     db.commit()
     return {"ok": True}
 
