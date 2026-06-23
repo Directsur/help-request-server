@@ -104,15 +104,19 @@
     <strong>dirección MAC</strong>, lo que evita duplicados aunque el equipo cambie de
     nombre de red. En la lista se muestra el nombre de red junto a la MAC para facilitar
     la identificación.</p>
-    <h6 class="fw-semibold mt-3">Asignar ubicación y grupo</h6>
-    <ol>
-      <li>Pulse el botón de edición <i class="bi bi-pencil"></i> junto al equipo.</li>
-      <li>Seleccione la sala en el desplegable de ubicaciones.</li>
-      <li>Seleccione el grupo (opcional).</li>
-      <li>Active <strong>Equipo de seguridad</strong> si este equipo debe recibir
-          <em>todas</em> las alertas, independientemente del grupo.</li>
-      <li>Pulse <strong>Guardar</strong>.</li>
-    </ol>
+    <h6 class="fw-semibold mt-3">Configurar un equipo</h6>
+    <p>Desde la columna de la tabla puede modificar directamente:</p>
+    <ul>
+      <li><strong>Grupo</strong> — desplegable para asignar o cambiar el grupo del equipo.</li>
+      <li><strong>Seguridad</strong> — toggle para que el equipo reciba <em>todas</em>
+          las alertas del centro, independientemente del grupo.</li>
+      <li><strong>Portátil</strong> — toggle para marcar el equipo como portátil. Los
+          equipos portátiles muestran la ventana de configuración de ubicación en
+          <em>cada</em> inicio de sesión para que el usuario pueda actualizar su posición.
+          Los equipos fijos solo la muestran una vez al mes tras la configuración inicial.</li>
+    </ul>
+    <p>El cambio se aplica de inmediato en la base de datos. El cliente lo recibe la
+    próxima vez que arranque o se reconecte al servidor.</p>
     <h6 class="fw-semibold mt-3">Eliminar un equipo</h6>
     <p>Pulse el botón de papelera <i class="bi bi-trash"></i> junto al equipo y confirme
     la acción. El equipo desaparece de la lista; si el cliente vuelve a arrancar,
