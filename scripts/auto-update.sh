@@ -65,6 +65,12 @@ chown -R helprequest:helprequest "$INSTALL_DIR"
 chmod +x "$INSTALL_DIR/scripts/reset-admin-password"
 chmod +x "$INSTALL_DIR/scripts/auto-update.sh"
 
+# Actualizar la copia instalada del propio script si ha cambiado
+if ! diff -q "$INSTALL_DIR/scripts/auto-update.sh" /usr/local/bin/help-request-auto-update > /dev/null 2>&1; then
+    log "Actualizando script de actualización automática..."
+    install -m 755 "$INSTALL_DIR/scripts/auto-update.sh" /usr/local/bin/help-request-auto-update
+fi
+
 # Actualizar dependencias Python
 log "Actualizando dependencias Python..."
 "$VENV_DIR/bin/pip" install --quiet -r "$INSTALL_DIR/requirements.txt"

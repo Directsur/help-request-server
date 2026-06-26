@@ -89,7 +89,7 @@ info "Actualizando repositorios e instalando dependencias..."
 # sigue presente y el medio no es accesible en ese momento.
 sed -i '/^deb cdrom:/d; /^deb-src cdrom:/d' /etc/apt/sources.list 2>/dev/null || true
 apt-get update -qq
-apt-get install -y -qq python3 python3-pip python3-venv mariadb-server mariadb-client
+apt-get install -y -qq python3 python3-pip python3-venv mariadb-server mariadb-client git curl
 
 # ─── 2. Arrancar y habilitar MariaDB ──────────────────────────────────────────
 info "Configurando MariaDB..."
